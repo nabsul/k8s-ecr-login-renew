@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: svc-demo-awsreg-renew
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: svc-demo-awsreg-renew
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - delete
+      - create
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: svc-demo-awsreg-renew
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: svc-demo-awsreg-renew
+subjects:
+  - kind: ServiceAccount
+    name: svc-demo-awsreg-renew
+    namespace: default
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: demo-awsreg-renew
+  labels:
+    app: demo-awsreg-renew
+spec:
+  schedule: "0 */6 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: svc-demo-awsreg-renew
+          containers:
+            - name: awsreg-renew
+              image: nabsul/k8s-awsreg-renew:v0.04
+              env:
+                - name: KUBE_AWSREG_SECRET_NAME
+                  value: demo-awsreg
+                - name: KUBE_AWSREG_EMAIL
+                  value: email@example.com
+                - name: AWS_REGION
+                  value: us-west-2
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-deploy
+                      key: id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-deploy
+                      key: key
