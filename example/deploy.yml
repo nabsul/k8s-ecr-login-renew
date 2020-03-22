@@ -16,19 +16,22 @@ spec:
           serviceAccountName: ecr-renew-demo
           containers:
             - name: ecr-renew
-              image: nabsul/k8s-ecr-login-renew:latest
+              image: nabsul/k8s-ecr-login-renew:v0.1
               env:
                 - name: DOCKER_SECRET_NAME
                   value: ecr-docker-login-demo
                 - name: AWS_REGION
-                  value: us-west-2
+                  valueFrom:
+                    secretKeyRef:
+                      name: ecr-renew-cred-demo
+                      key: REGION
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
-                      name: ecr-renew-cred
+                      name: ecr-renew-cred-demo
                       key: ID
                 - name: AWS_SECRET_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: ecr-renew-cred
+                      name: ecr-renew-cred-demo
                       key: SECRET
