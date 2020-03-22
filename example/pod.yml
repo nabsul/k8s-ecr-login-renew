@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-test
+  labels:
+    name: my-test
+spec:
+  imagePullSecrets:
+    - name: demo-awsreg
+  containers:
+    - name: my-test-container
+      image: [ECR_URL]/my-test:latest
+      ports:
+        - containerPort: 80
+          

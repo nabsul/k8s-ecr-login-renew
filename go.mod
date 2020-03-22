@@ -1,4 +1,4 @@
-module github.com/nabsul/k8s-awsreg-renew
+module github.com/nabsul/k8s-ecr-login-renew
 
 go 1.14
 

@@ -6,8 +6,7 @@ import (
 	"time"
 )
 
-const awsEmailEnv = "KUBE_AWSREG_EMAIL"
-const awsSecretName = "KUBE_AWSREG_SECRET_NAME"
+const awsSecretName = "DOCKER_SECRET_NAME"
 
 func checkErr(err error) {
 	if err != nil {
@@ -27,13 +26,12 @@ func main() {
 	fmt.Println("Running at " + time.Now().UTC().String())
 
 	name := getEnv(awsSecretName)
-	email := getEnv(awsEmailEnv)
 
 	fmt.Print("Fetching auth data from AWS... ")
 	username, password, server := getUserAndPass()
 	fmt.Println("Success.")
 
 	fmt.Printf("Updating kubernetes secret [%s]... ", name)
-	updatePassword(name, username, password, email, server)
+	updatePassword(name, username, password, server)
 	fmt.Println("Success.")
 }

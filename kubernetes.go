@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 )
 
+const defaultEmail = "awsregrenew@demo.test"
+
 func getClient() kubernetes.Clientset {
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -36,13 +38,13 @@ func deleteOldSecret(client kubernetes.Clientset, name string) {
 	}
 }
 
-func createSecret(name, username, password, email, server string) v1.Secret {
+func createSecret(name, username, password, server string) v1.Secret {
 	config := map[string]map[string]map[string]string {
 		"auths": {
 			server: {
 				"username": username,
 				"password": password,
-				"email": email,
+				"email": defaultEmail,
 				"auth": base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
 			},
 		},
@@ -59,12 +61,12 @@ func createSecret(name, username, password, email, server string) v1.Secret {
 	return secret
 }
 
-func updatePassword(name, username, password, email, server string) {
+func updatePassword(name, username, password, server string) {
 	client := getClient()
 
 	deleteOldSecret(client, name)
 
-	secret := createSecret(name, username, password, email, server)
+	secret := createSecret(name, username, password, server)
 
 	_, err := client.CoreV1().Secrets("default").Create(&secret)
 	checkErr(err)

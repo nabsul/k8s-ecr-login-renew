@@ -2,13 +2,9 @@ FROM golang:1.14 as build
 
 WORKDIR /app
 COPY . .
+RUN go build -o k8s-ecr-login-renew .
 
-RUN go build -o k8s-awsreg-renew .
-
-FROM debian
-RUN apt-get update
-RUN apt-get install -y ca-certificates
-RUN update-ca-certificates
-
-COPY --from=build /app/k8s-awsreg-renew .
+FROM alpine:latest
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+COPY --from=build /app/k8s-ecr-login-renew .
 CMD ["./k8s-awsreg-renew"]
