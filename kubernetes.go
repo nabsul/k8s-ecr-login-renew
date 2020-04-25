@@ -30,10 +30,10 @@ func getClient() kubernetes.Clientset {
 	return *client
 }
 
-func deleteOldSecret(client kubernetes.Clientset, name string) {
-	_, err := client.CoreV1().Secrets("default").Get(name, metav1.GetOptions{})
+func deleteOldSecret(client kubernetes.Clientset, name, namespace string) {
+	_, err := client.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
 	if err == nil {
-		err = client.CoreV1().Secrets("default").Delete(name, &metav1.DeleteOptions{})
+		err = client.CoreV1().Secrets(namespace).Delete(name, &metav1.DeleteOptions{})
 		checkErr(err)
 	}
 }
@@ -61,13 +61,13 @@ func createSecret(name, username, password, server string) v1.Secret {
 	return secret
 }
 
-func updatePassword(name, username, password, server string) {
+func updatePassword(name, username, password, server, namespace string) {
 	client := getClient()
 
-	deleteOldSecret(client, name)
+	deleteOldSecret(client, name, namespace)
 
 	secret := createSecret(name, username, password, server)
 
-	_, err := client.CoreV1().Secrets("default").Create(&secret)
+	_, err := client.CoreV1().Secrets(namespace).Create(&secret)
 	checkErr(err)
 }
