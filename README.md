@@ -140,3 +140,18 @@ The following commands should undo everything that was created:
 - `kubectl delete -f example/service-account.yml`
 - `kubectl delete secret ecr-renew-cred-demo`
 - `kubectl delete secret ecr-docker-login-demo`
+
+
+### Running in a namespace other than default namespace
+
+You can run this job in multiple, or a specific namespace by passing the environment variable `TARGET_NAMESPACE`, if this option is left empty then the default namespace will be used. You can add this parameter to the example in deploy.yaml with an additional env definition on the container:
+
+```yaml
+- name: ecr-renew
+  image: nabsul/k8s-ecr-login-renew:v0.1
+  env:
+    - name: DOCKER_SECRET_NAME
+      value: ecr-docker-login-demo
+    - name: TARGET_NAMESPACE
+      value: demo-namespace
+```
