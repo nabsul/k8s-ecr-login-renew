@@ -1,7 +1,8 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: ecr-renew-demo
+  namespace: ns-ecr-renew-demo
+  name: cron-ecr-renew-demo
   labels:
     app: ecr-renew-demo
 spec:
@@ -13,13 +14,15 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          serviceAccountName: ecr-renew-demo
+          serviceAccountName: svc-ecr-renew-demo
           containers:
             - name: ecr-renew
-              image: nabsul/k8s-ecr-login-renew:latest
+              image: nabsul/k8s-ecr-login-renew:test-v1.1
               env:
                 - name: DOCKER_SECRET_NAME
                   value: ecr-docker-login-demo
+                - name: TARGET_NAMESPACE
+                  value: ns-ecr-renew-demo
                 - name: AWS_REGION
                   valueFrom:
                     secretKeyRef:
