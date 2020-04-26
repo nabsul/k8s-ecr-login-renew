@@ -17,7 +17,7 @@ spec:
           serviceAccountName: svc-ecr-renew-demo
           containers:
             - name: ecr-renew
-              image: nabsul/k8s-ecr-login-renew:test-v1.1
+              image: nabsul/k8s-ecr-login-renew:latest
               env:
                 - name: DOCKER_SECRET_NAME
                   value: ecr-docker-login-demo
