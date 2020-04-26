@@ -15,18 +15,14 @@ func checkErr(err error) {
 	}
 }
 
-func getEnv(name string) string {
-	result := os.Getenv(name)
-	if result == "" {
-		panic("Environment variable " + name + " is required")
-	}
-	return result
-}
-
 func main() {
 	fmt.Println("Running at " + time.Now().UTC().String())
 
-	name := getEnv(awsSecretName)
+	name := os.Getenv(awsSecretName)
+	if name == "" {
+		panic(fmt.Sprintf("Environment variable %s is required", name))
+	}
+
 	targetNamespace := os.Getenv(targetNamespaceName)
 	if targetNamespace == "" {
 		targetNamespace = "default"

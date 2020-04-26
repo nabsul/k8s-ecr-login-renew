@@ -50,7 +50,7 @@ I find IAM to be rather tricky, but here are the steps that I followed:
 - Select "Add User", select the "Programmatic Access" option
 - Create a group for that user
 - Create a policy for that group with the following configuration:
-  -  Service: Elastic Container Registry
+  - Service: Elastic Container Registry
   - Access Level: List & Read
   - Resources: Select the specific ECR instance that you'll be using
   
@@ -62,7 +62,10 @@ You will then need to create a secret in Kubernetes with the IAM user's credenti
 The secret can be created from the command line using `kubectl` as follows:
 
 ```shell script
-kubectl create secret generic ecr-renew-cred-demo --from-literal=REGION=[AWS_REGION] --from-literal=ID=[AWS_KEY_ID] --from-literal=SECRET=[AWS_SECRET]
+kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
+  --from-literal=REGION=[AWS_REGION] \
+  --from-literal=ID=[AWS_KEY_ID] \
+  --from-literal=SECRET=[AWS_SECRET]
 ```
 
 ### Required Kubernetes Service Account
@@ -133,25 +136,14 @@ And then you can open http://localhost:8080 in your browser to see an nginx defa
 ### Clean up after the Demo
 
 After running this demo, you might want to clean up everything.
-The following commands should undo everything that was created:
+Since the demo is all in its own namespace, just delete it:
 
-- `kubectl delete -f example/pod.yml`
-- `kubectl delete -f example/deploy.yml`
-- `kubectl delete -f example/service-account.yml`
-- `kubectl delete secret ecr-renew-cred-demo`
-- `kubectl delete secret ecr-docker-login-demo`
-
+```shell script
+kubectl delete namespace ns-ecr-renew-demo
+```
 
 ### Running in a namespace other than default namespace
 
-You can run this job in multiple, or a specific namespace by passing the environment variable `TARGET_NAMESPACE`, if this option is left empty then the default namespace will be used. You can add this parameter to the example in deploy.yaml with an additional env definition on the container:
-
-```yaml
-- name: ecr-renew
-  image: nabsul/k8s-ecr-login-renew:v0.1
-  env:
-    - name: DOCKER_SECRET_NAME
-      value: ecr-docker-login-demo
-    - name: TARGET_NAMESPACE
-      value: demo-namespace
-```
+The example configuration runs in a namespace called `ns-ecr-renew-demo`.
+This is configured using the `TARGET_NAMESPACE` environment variable.
+If it is not provided, the it will fall back to the `default` namespace.
