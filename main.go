@@ -27,8 +27,8 @@ func main() {
 	fmt.Println("Running at " + time.Now().UTC().String())
 
 	name := getEnv(awsSecretName)
-	targetNamespace := getEnv(targetNamespaceName)
-	if targetNamespace == ""{
+	targetNamespace := os.Getenv(targetNamespaceName)
+	if targetNamespace == "" {
 		targetNamespace = "default"
 	}
 
