@@ -13,7 +13,6 @@ func getUserAndPass() (username, password, server string) {
 	checkErr(err)
 
 	auth := token.AuthorizationData[0]
-
 	decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
 	checkErr(err)
 
