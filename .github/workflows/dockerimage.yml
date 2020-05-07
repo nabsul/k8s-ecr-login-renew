@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag k8s-ecr-login-renew:latest
+      run: docker build . --file Dockerfile --tag k8s-ecr-login-renew
 
     - name: Log into registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
@@ -35,5 +35,5 @@ jobs:
         [ "$VERSION" == "master" ] && VERSION=latest
         echo IMAGE_ID=$IMAGE_ID
         echo VERSION=$VERSION
-        docker tag image $IMAGE_ID:$VERSION
+        docker tag k8s-ecr-login-renew $IMAGE_ID:$VERSION
         docker push $IMAGE_ID:$VERSION
