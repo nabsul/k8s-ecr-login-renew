@@ -23,7 +23,7 @@ jobs:
 
     - name: Push image
       run: |
-        IMAGE_ID=docker.pkg.github.com/k8s-ecr-login-renew/image
+        IMAGE_ID=docker.pkg.github.com/nabsul/k8s-ecr-login-renew/image
         VERSION=$(date +%s)
         [ "$VERSION" == "master" ] && VERSION=latest
         echo IMAGE_ID=$IMAGE_ID VERSION=$VERSION
