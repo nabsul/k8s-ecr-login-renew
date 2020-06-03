@@ -33,6 +33,10 @@ func main() {
 	fmt.Println("Success.")
 
 	fmt.Printf("Updating kubernetes secret [%s]... ", name)
-	updatePassword(name, username, password, server, targetNamespace)
+
+	for _, ns := range getNamespaces(targetNamespace) {
+		updatePassword(name, username, password, server, ns)
+	}
+
 	fmt.Println("Success.")
 }
