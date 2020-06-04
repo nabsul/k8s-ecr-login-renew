@@ -10,93 +10,83 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os/user"
 	"path/filepath"
-	"strings"
 )
 
 const defaultEmail = "awsregrenew@demo.test"
 
-func getClient() kubernetes.Clientset {
-	config, err := rest.InClusterConfig()
+func getClient() (*kubernetes.Clientset, error) {
+	config, err := getClientConfig()
 	if err != nil {
-		u, err := user.Current()
-		checkErr(err)
-
-		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(u.HomeDir, ".kube", "config"))
-		checkErr(err)
+		return nil, err
 	}
 
-	client, err := kubernetes.NewForConfig(config)
-	checkErr(err)
-
-	return *client
+	return kubernetes.NewForConfig(config)
 }
 
-func deleteOldSecret(client kubernetes.Clientset, name, namespace string) {
-	_, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
+func getClientConfig() (*rest.Config, error) {
+	config, err := rest.InClusterConfig()
 	if err == nil {
-		err = client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
-		checkErr(err)
+		return config, nil
 	}
+
+	u, err := user.Current()
+	if nil != err {
+		return nil, err
+	}
+
+	return clientcmd.BuildConfigFromFlags("", filepath.Join(u.HomeDir, ".kube", "config"))
 }
 
-func createSecret(name, username, password, server string) v1.Secret {
-	config := map[string]map[string]map[string]string {
+func deleteOldSecret(client *kubernetes.Clientset, name, namespace string) error {
+	_, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
+	if nil != err {
+		return err
+	}
+
+	return client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
+}
+
+func createSecret(name, username, password, server string) (*v1.Secret, error) {
+	config := map[string]map[string]map[string]string{
 		"auths": {
 			server: {
 				"username": username,
 				"password": password,
-				"email": defaultEmail,
-				"auth": base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
+				"email":    defaultEmail,
+				"auth":     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
 			},
 		},
 	}
 
 	configJson, err := json.Marshal(config)
-	checkErr(err)
+	if nil != err {
+		return nil, err
+	}
 
 	secret := v1.Secret{}
 	secret.Name = name
 	secret.Type = v1.SecretTypeDockerConfigJson
 	secret.Data = map[string][]byte{}
 	secret.Data[v1.DockerConfigJsonKey] = configJson
-	return secret
+	return &secret, nil
 }
 
-func updatePassword(name, username, password, server, namespace string) {
-	client := getClient()
-
-	deleteOldSecret(client, name, namespace)
-
-	secret := createSecret(name, username, password, server)
-
-	_, err := client.CoreV1().Secrets(namespace).Create(&secret)
-	checkErr(err)
-}
-
-func getNamespaces(envVar string) []string {
-	list := strings.Split(envVar, ",")
-	return list
-}
-
-func getAllNamespaces() []string {
-	var result []string
-
-	client := getClient()
-	opts := ListOptions{}
-	first := true
-
-	for first || opts.Continue != "" {
-		first = false
-		res, err := client.CoreV1().Namespaces().List(opts)
-		checkErr(err)
-		opts.Continue = res.Continue
-		newNames := make([]string, len(res.Items))
-		for i, item := range res.Items {
-			newNames[i] = item.Name
-		}
-
-		result = append(result, newNames...)
+func updatePassword(name, username, password, server, namespace string) error {
+	client, err := getClient()
+	if nil != err {
+		return err
 	}
 
-	return result
+	err = deleteOldSecret(client, name, namespace)
+	if nil != err {
+		return err
+	}
+
+	secret, err := createSecret(name, username, password, server)
+	if nil != err {
+		return err
+	}
+
+	_, err = client.CoreV1().Secrets(namespace).Create(secret)
+	return err
 }
