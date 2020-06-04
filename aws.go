@@ -7,16 +7,20 @@ import (
 	"strings"
 )
 
-func getUserAndPass() (username, password, server string) {
+func getUserAndPass() (username, password, server string, err error) {
 	svc := ecr.New(session.Must(session.NewSession()))
 	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
-	checkErr(err)
+	if nil != err {
+		return "", "", "", err
+	}
 
 	auth := token.AuthorizationData[0]
 
 	decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
-	checkErr(err)
+	if nil != err {
+		return "", "", "", err
+	}
 
 	parts := strings.Split(string(decode), ":")
-	return parts[0], parts[1], *auth.ProxyEndpoint
+	return parts[0], parts[1], *auth.ProxyEndpoint, nil
 }
