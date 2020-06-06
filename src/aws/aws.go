@@ -1,4 +1,4 @@
-package main
+package aws
 
 import (
 	"encoding/base64"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func getUserAndPass() (username, password, server string, err error) {
+func GetUserAndPass() (username, password, server string, err error) {
 	svc := ecr.New(session.Must(session.NewSession()))
 	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
 	if nil != err {
