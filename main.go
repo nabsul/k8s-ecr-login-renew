@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
+	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"os"
 	"time"
 )
@@ -32,19 +34,19 @@ func main() {
 	}
 
 	fmt.Print("Fetching auth data from AWS... ")
-	username, password, server, err := getUserAndPass()
+	username, password, server, err := aws.GetUserAndPass()
 	checkErr(err)
 	fmt.Println("Success.")
 
 	fmt.Printf("Updating kubernetes secret [%s]... ", name)
 
-	namespaces, err := getNamespaces(namespaceList)
+	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
 
 	failed := false
 	for _, ns := range namespaces {
 		fmt.Printf("Updating secret [%s] in namespace [%s]... ", name, ns)
-		err = updatePassword(name, username, password, server, ns)
+		err = k8s.UpdatePassword(name, username, password, server, ns)
 		if nil != err {
 			fmt.Printf("failed: %s\n", err)
 			failed = true

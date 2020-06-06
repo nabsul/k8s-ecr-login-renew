@@ -1,4 +1,4 @@
-package main
+package k8s
 
 import (
 	. "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func getNamespaces(envVar string) ([]string, error) {
+func GetNamespaces(envVar string) ([]string, error) {
 	list := strings.Split(envVar, ",")
 	wildcardMatches, err := getWildCardMatches(list)
 	if nil != err {
@@ -25,7 +25,7 @@ func getWildCardMatches(list []string) ([]string, error) {
 		return result, err
 	}
 
-	namespaces, err := getAllNamespaces()
+	namespaces, err := GetAllNamespaces()
 	if nil != err {
 		return result, err
 	}
@@ -70,10 +70,10 @@ func getWildCardRegexes(list []string) ([]*regexp.Regexp, error) {
 	return result, nil
 }
 
-func getAllNamespaces() ([]string, error) {
+func GetAllNamespaces() ([]string, error) {
 	var result []string
 
-	client, err := getClient()
+	client, err := GetClient()
 	if nil != err {
 		return nil, err
 	}

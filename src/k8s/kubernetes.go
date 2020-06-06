@@ -1,4 +1,4 @@
-package main
+package k8s
 
 import (
 	"encoding/base64"
@@ -14,7 +14,7 @@ import (
 
 const defaultEmail = "awsregrenew@demo.test"
 
-func getClient() (*kubernetes.Clientset, error) {
+func GetClient() (*kubernetes.Clientset, error) {
 	config, err := getClientConfig()
 	if err != nil {
 		return nil, err
@@ -71,8 +71,8 @@ func createSecret(name, username, password, server string) (*v1.Secret, error) {
 	return &secret, nil
 }
 
-func updatePassword(name, username, password, server, namespace string) error {
-	client, err := getClient()
+func UpdatePassword(name, username, password, server, namespace string) error {
+	client, err := GetClient()
 	if nil != err {
 		return err
 	}
