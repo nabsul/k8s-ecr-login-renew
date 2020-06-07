@@ -1,33 +1,40 @@
 package test
 
 import (
-	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
-	v1 "k8s.io/api/core/v1"
-	"strings"
-	"testing"
+	"errors"
+	"fmt"
+	coreV1 "k8s.io/api/core/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
-func CheckNamespaces(t *testing.T) {
-	namespaces, err := k8s.GetAllNamespaces()
+func checkNamespaces(c *kubernetes.Clientset, testNamespaces []string) error {
+	namespaces, err := c.CoreV1().Namespaces().List(metaV1.ListOptions{})
 	if nil != err {
-		t.Error(err)
-		return
+		return err
 	}
 
-	if 0 == len(namespaces) {
-		t.Error("no namespaces returned")
+	if 0 == len(namespaces.Items) {
+		return errors.New("no namespaces returned")
 	}
 
-	t.Logf("Namespaces found: %s", strings.Join(namespaces, ", "))
+	set := map[string]bool{}
+	for _, ns := range testNamespaces {
+		set[ns] = true
+	}
+
+	for _, ns := range namespaces.Items {
+		_, ok := set[ns.Name]
+		if ok {
+			return errors.New(fmt.Sprintf("Namespace already exists: [%s]", ns.Name))
+		}
+	}
+
+	return nil
 }
 
-func CreateNamespace(name string) (*v1.Namespace, error) {
-	c, err := k8s.GetClient()
-	if nil != err {
-		return nil, err
-	}
-
-	ns := &v1.Namespace{}
+func createNamespace(c *kubernetes.Clientset, name string) (*coreV1.Namespace, error) {
+	ns := &coreV1.Namespace{}
 	ns.Name = name
 	return c.CoreV1().Namespaces().Create(ns)
 }
