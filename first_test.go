@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"github.com/nabsul/k8s-ecr-login-renew/test"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	rbacVa "k8s.io/api/rbac/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 func TestFirst(t *testing.T) {
-	initTest(t)
+	initTest()
 	name := "ns-ecr-demo-1"
 	ns, err := test.CreateNamespace(name)
 	if nil != err {
@@ -24,7 +25,7 @@ func TestFirst(t *testing.T) {
 }
 
 func Test_CreateCronJob(t *testing.T) {
-	initTest(t)
+	initTest()
 	err := test.CreateCronJob("default", "test-job")
 	if nil != err {
 		t.Error(err)
@@ -32,16 +33,33 @@ func Test_CreateCronJob(t *testing.T) {
 	}
 }
 
-func initTest(t *testing.T) {
-	t.Cleanup(cleanup)
+
+func runTest(namespaces []string, roles []*rbacVa.RoleRef) error {
+	for _, ns := range namespaces {
+		_, err := test.CreateNamespace(ns)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func cleanup() {
+func initTest(t *testing.T, namespaces []string) {
+	t.Cleanup(func(){cleanup(namespaces)})
+}
+
+// as long as we only create stuff in namespaces, deleting the namespaces should
+func cleanup(namespaces []string) {
 	c, err := k8s.GetClient()
 	if nil != err {
 		return
 	}
 
-	c.CoreV1().Namespaces().Delete("ns-ecr-demo-1", &v1.DeleteOptions{})
-	c.BatchV1beta1().CronJobs("default").Delete("test-job", &v1.DeleteOptions{})
+	for _, ns := range namespaces {
+		err = c.CoreV1().Namespaces().Delete(ns, &metaV1.DeleteOptions{})
+		if err != nil {
+			fmt.Printf("Failed to cleanup namespace [%s]: [%s}", ns, err)
+		}
+	}
 }
