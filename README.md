@@ -157,7 +157,17 @@ It will auto-detect the cluster to use,
 and will refuse to run if the namespaces it uses already exist 
 (to avoid accidentally overriding real configurations).
 
-Running these tests requires a secret with the needed AWS parameters.
+Running these tests locally has two prerequisites:
+ 
+- A secret with the needed AWS parameters
+- A built image of the tool named `test-ecr-renew`
+
+You can build the tool locally with this command:
+
+```shell script
+docker build -t test-ecr-renew .
+```
+
 This can be done with the following command:
 
 ```shell script
