@@ -31,7 +31,7 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 		}
 
 		binding := createRoleBinding(role, svc)
-		_, err = c.RbacV1().RoleBindings(ConstSvcNamespace).Create(binding)
+		_, err = c.RbacV1().RoleBindings(ns).Create(binding)
 		if err != nil {
 			return err
 		}

@@ -44,7 +44,7 @@ func main() {
 
 	failed := false
 	for _, ns := range namespaces {
-		fmt.Printf("Updating secret [%s] in namespace [%s]... ", name, ns)
+		fmt.Printf("Updating secret in namespace [%s]... ", ns)
 		err = k8s.UpdatePassword(ns, name, username, password, server)
 		if nil != err {
 			fmt.Printf("failed: %s\n", err)
