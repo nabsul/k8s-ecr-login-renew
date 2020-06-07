@@ -1,46 +1,106 @@
 package test
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
-	v13 "k8s.io/api/batch/v1"
+	batchV1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
-	v1 "k8s.io/api/core/v1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	coreV1 "k8s.io/api/core/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
-func CreateCronJob(namespace, name string) error {
+const ConstCronJobName = "test-ecr-renew-cron-job"
+const ConstJobName = "test-ecr-renew-job"
+
+func CreateCronJob() error {
 	c, err := k8s.GetClient()
 	if nil != err {
 		return err
 	}
 
-	job := getCronJob(namespace, name)
-	_, err = c.BatchV1beta1().CronJobs(namespace).Create(&job)
+	job := createCronJob()
+	_, err = c.BatchV1beta1().CronJobs(ConstSvcNamespace).Create(&job)
 	return err
 }
 
-func getCronJob(namespace, name string) v1beta1.CronJob {
+func RunCronJob() error {
+	c, err := k8s.GetClient()
+	if nil != err {
+		return err
+	}
+
+	getOpt := metaV1.GetOptions{}
+	cron, err := c.BatchV1beta1().CronJobs(ConstSvcNamespace).Get(ConstCronJobName, getOpt)
+	if err != nil {
+		return err
+	}
+
+	job := createJob(*cron)
+	run, err := c.BatchV1().Jobs(ConstSvcNamespace).Create(&job)
+	if err != nil {
+		return err
+	}
+
+	for run.Status.CompletionTime == nil {
+		bytes, err := json.MarshalIndent(run, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(bytes))
+
+		time.Sleep(5 * time.Second)
+		run, err = c.BatchV1().Jobs(ConstSvcNamespace).Get(job.Name, getOpt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createJob(cron v1beta1.CronJob) batchV1.Job {
+	return batchV1.Job{
+		TypeMeta: metaV1.TypeMeta{
+			Kind: "Job",
+		},
+		ObjectMeta: metaV1.ObjectMeta{
+			Namespace: ConstSvcNamespace,
+			Name: ConstJobName,
+		},
+		Spec: cron.Spec.JobTemplate.Spec,
+	}
+}
+
+func createCronJob() v1beta1.CronJob {
 	return v1beta1.CronJob{
-		TypeMeta: v12.TypeMeta{
+		TypeMeta: metaV1.TypeMeta{
 			Kind:       "CronJob",
 			APIVersion: "batch/v1beta1",
 		},
-		ObjectMeta: v12.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+		ObjectMeta: metaV1.ObjectMeta{
+			Name:      ConstCronJobName,
+			Namespace: ConstSvcNamespace,
 			Labels: map[string]string{
-				"app": "ecr-renew-test",
+				"app": "test-ecr-renew",
 			},
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule: "0 0 1 1 1", // set to a value in the past so it never triggers
 			JobTemplate: v1beta1.JobTemplateSpec{
-				Spec: v13.JobSpec{
-					Template: v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
+				Spec: batchV1.JobSpec{
+					Template: coreV1.PodTemplateSpec{
+						Spec: coreV1.PodSpec{
 							RestartPolicy:      "OnFailure",
-							ServiceAccountName: "svc-ecr-renew-demo",
-							Containers:         []v1.Container{getContainer()},
+							ServiceAccountName: ConstSvcName,
+							Containers:         []coreV1.Container{
+								{
+									Name:  "ecr-renew",
+									Image: "nabsul/k8s-ecr-login-renew:latest",
+									Env:   getCronJobEnvVars(),
+								},
+							},
 						},
 					},
 				},
@@ -49,37 +109,22 @@ func getCronJob(namespace, name string) v1beta1.CronJob {
 	}
 }
 
-func getContainer() v1.Container {
-	return v1.Container{
-		Name:                     "ecr-renew",
-		Image:                    "nabsul/k8s-ecr-login-renew:latest",
-		Env:                      getCronJobEnvVars(),
-	}
-}
-
-func getCronJobEnvVars() []v1.EnvVar {
-	return []v1.EnvVar{
-		createEnvVar("DOCKER_SECRET_NAME", "ecr-docker-login-demo"),
-		createEnvVar("TARGET_NAMESPACE", "ns-ecr-renew-demo"),
+func getCronJobEnvVars() []coreV1.EnvVar {
+	return []coreV1.EnvVar{
+		{Name: "DOCKER_SECRET_NAME", Value: "ecr-docker-login-demo"},
+		{Name: "TARGET_NAMESPACE", Value: "ns-ecr-renew-demo"},
 		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "REGION"),
 		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "ID"),
 		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "SECRET"),
 	}
 }
 
-func createEnvVar(name, value string) v1.EnvVar {
-	return v1.EnvVar{
-		Name:  name,
-		Value: value,
-	}
-}
-
-func createSecretEnvVar(envName, secretName, secretKey string) v1.EnvVar {
-	return v1.EnvVar{
+func createSecretEnvVar(envName, secretName, secretKey string) coreV1.EnvVar {
+	return coreV1.EnvVar{
 		Name: envName,
-		ValueFrom: &v1.EnvVarSource{
-			SecretKeyRef: &v1.SecretKeySelector{
-				LocalObjectReference: v1.LocalObjectReference{
+		ValueFrom: &coreV1.EnvVarSource{
+			SecretKeyRef: &coreV1.SecretKeySelector{
+				LocalObjectReference: coreV1.LocalObjectReference{
 					Name: secretName,
 				},
 				Key: secretKey,
