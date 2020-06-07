@@ -10,6 +10,7 @@ import (
 
 func Test_BasicFunction(t *testing.T) {
 	namespaces := []string{test.ConstSvcNamespace}
+	///initTest(t, namespaces)
 
 	err := runTest(t, namespaces, namespaces, false)
 	if err != nil {
@@ -19,7 +20,7 @@ func Test_BasicFunction(t *testing.T) {
 
 
 func runTest(t *testing.T, namespaces, allowedNamespaces []string, canGetNamespaces bool) error {
-	t.Log("creating namespaces")
+	t.Log("Creating namespaces")
 	for _, ns := range namespaces {
 		_, err := test.CreateNamespace(ns)
 		if err != nil {
@@ -27,8 +28,13 @@ func runTest(t *testing.T, namespaces, allowedNamespaces []string, canGetNamespa
 		}
 	}
 
-	t.Log("Creating service and rolebindings")
+	t.Log("Creating service and permissions")
 	err := test.CreateServiceAccount(allowedNamespaces, canGetNamespaces)
+	if err != nil {
+		return err
+	}
+
+	err = test.CopyAwsSecret()
 	if err != nil {
 		return err
 	}
