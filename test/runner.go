@@ -9,32 +9,33 @@ import (
 	"testing"
 )
 
-type Config struct {
-	T                                 *testing.T
-	SuccessNamespaces, FailNamespaces []string
-	CanGetNamespaces                  bool
-	TargetNamespace                   string
+type config struct {
+	t                 *testing.T
+	createdNamespaces []string
+	successNamespaces []string
+	failNamespaces    []string
+	canGetNamespaces  bool
+	targetNamespace   string
 }
 
-func RunTest(cfg Config) {
-	t := cfg.T
-	namespaces := append(cfg.SuccessNamespaces, cfg.FailNamespaces...)
+func runTest(cfg config) {
+	//cfg.t.Cleanup(func(){cleanup(cfg.createdNamespaces)})
 
+	t := cfg.t
 	c, err := k8s.GetClient()
 	if err != nil {
 		printError(t, err)
 		return
 	}
 
-	err = checkNamespaces(c, namespaces)
+	err = checkNamespaces(c, cfg.createdNamespaces)
 	if err != nil {
 		printError(t, err)
 		return
 	}
 
-	t.Cleanup(func(){cleanup(namespaces)})
 	t.Log("Creating namespaces")
-	for _, ns := range namespaces {
+	for _, ns := range cfg.createdNamespaces {
 		_, err := createNamespace(c, ns)
 		if err != nil {
 			printError(t, err)
@@ -43,7 +44,7 @@ func RunTest(cfg Config) {
 	}
 
 	t.Log("Creating service and permissions")
-	err = createServiceAccount(c, cfg.SuccessNamespaces, cfg.CanGetNamespaces)
+	err = createServiceAccount(c, cfg.successNamespaces, cfg.canGetNamespaces)
 	if err != nil {
 		printError(t, err)
 		return
@@ -53,16 +54,15 @@ func RunTest(cfg Config) {
 	awsId, ok1 := awsParams["ID"]
 	awsSecret, ok2 := awsParams["SECRET"]
 	awsRegion, ok3 := awsParams["REGION"]
-	awsImage, ok4 := awsParams["IMAGE"]
-	if !(ok1 && ok2 && ok3 && ok4) {
-		values := fmt.Sprintf("[%s], [%s], [%s], [%s]", awsId, awsSecret, awsRegion, awsImage)
+	if !(ok1 && ok2 && ok3) {
+		values := fmt.Sprintf("[%s], [%s], [%s]", awsId, awsSecret, awsRegion)
 		err = errors.New(fmt.Sprintf("one or more AWS Param not configured: %s", values))
 		printError(t, err)
 		return
 	}
 
 	t.Log("Creating cron job")
-	err = initCronJob(c, cfg.TargetNamespace, awsRegion, awsId, awsSecret)
+	err = initCronJob(c, cfg.targetNamespace, awsRegion, awsId, awsSecret)
 	if nil != err {
 		printError(t, err)
 		return
@@ -77,25 +77,29 @@ func RunTest(cfg Config) {
 
 	t.Log("Checking job logs")
 	if !strings.Contains(logs, "Fetching auth data from AWS... Success.") {
-		printError(t, errors.New(fmt.Sprintf("no AWS success message found in \n%s", logs)))
+		printError(t, errors.New(fmt.Sprintf("no AWS success message found")))
 	}
 
-	for _, ns := range cfg.SuccessNamespaces {
-		msg := fmt.Sprintf("Updating secret [%s] in namespace [%s]... success", ConstDockerSecretName, ns)
+	for _, ns := range cfg.successNamespaces {
+		t.Logf("Checking for success: %s", ns)
+		msg := fmt.Sprintf("Updating secret in namespace [%s]... success", ns)
 		if !strings.Contains(logs, msg) {
-			msg = fmt.Sprintf("no success message found for namespace [%s] in \n%s", ns, logs)
+			msg = fmt.Sprintf("no success message found for namespace [%s]", ns)
 			printError(t, errors.New(msg))
-			return
 		}
 	}
 
-	for _, ns := range cfg.FailNamespaces {
-		msg := fmt.Sprintf("Updating secret [%s] in namespace [%s]... failed:", ConstDockerSecretName, ns)
+	for _, ns := range cfg.failNamespaces {
+		t.Logf("Checking for failure: %s", ns)
+		msg := fmt.Sprintf("Updating secret in namespace [%s]... failed:", ns)
 		if !strings.Contains(logs, msg) {
-			msg = fmt.Sprintf("no success message found for namespace [%s] in \n%s", ns, logs)
+			msg = fmt.Sprintf("no fail message found for namespace [%s]", ns)
 			printError(t, errors.New(msg))
-			return
 		}
+	}
+
+	if t.Failed() {
+		printError(t, errors.New(logs))
 	}
 }
 

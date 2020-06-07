@@ -14,5 +14,5 @@ const ConstAwsSecretName = "test-ecr-renew-aws"
 const ConstDockerSecretName = "test-ecr-renew-docker-login"
 
 func printError(t *testing.T, err error) {
-	t.Errorf("%+v", err)
+	t.Errorf("Error: %v", err)
 }
