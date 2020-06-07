@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	batchV1 "k8s.io/api/batch/v1"
@@ -56,6 +57,30 @@ func RunCronJob() error {
 			return err
 		}
 	}
+	bytes, err := json.MarshalIndent(run, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(bytes))
+
+	list, err := c.CoreV1().Pods(ConstSvcNamespace).List(metaV1.ListOptions{LabelSelector: "job-name=test-ecr-renew-job"})
+	if err != nil {
+		return err
+	}
+
+	if len(list.Items) != 1 {
+		return errors.New(fmt.Sprint("Unexpected number of pods returned: %i", len(list.Items)))
+	}
+
+	pod := list.Items[0]
+
+	req := c.CoreV1().Pods(ConstSvcNamespace).GetLogs(pod.Name, &coreV1.PodLogOptions{})
+	res := req.Do()
+	bytes, err = res.Raw()
+	if err != nil {
+		return err
+	}
+	fmt.Printf(string(bytes))
 
 	return nil
 }
@@ -94,11 +119,17 @@ func createCronJob() v1beta1.CronJob {
 						Spec: coreV1.PodSpec{
 							RestartPolicy:      "OnFailure",
 							ServiceAccountName: ConstSvcName,
-							Containers:         []coreV1.Container{
+							Containers: []coreV1.Container{
 								{
 									Name:  "ecr-renew",
 									Image: "nabsul/k8s-ecr-login-renew:latest",
-									Env:   getCronJobEnvVars(),
+									Env: []coreV1.EnvVar{
+										{Name: "DOCKER_SECRET_NAME", Value: "test-ecr-renew-docker-login"},
+										{Name: "TARGET_NAMESPACE", Value: ConstSvcNamespace},
+										createSecretEnvVar("AWS_REGION", "REGION"),
+										createSecretEnvVar("AWS_ACCESS_KEY_ID", "ID"),
+										createSecretEnvVar("AWS_SECRET_ACCESS_KEY", "SECRET"),
+									},
 								},
 							},
 						},
@@ -109,23 +140,13 @@ func createCronJob() v1beta1.CronJob {
 	}
 }
 
-func getCronJobEnvVars() []coreV1.EnvVar {
-	return []coreV1.EnvVar{
-		{Name: "DOCKER_SECRET_NAME", Value: "ecr-docker-login-demo"},
-		{Name: "TARGET_NAMESPACE", Value: "ns-ecr-renew-demo"},
-		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "REGION"),
-		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "ID"),
-		createSecretEnvVar("AWS_REGION", "ecr-renew-cred-demo", "SECRET"),
-	}
-}
-
-func createSecretEnvVar(envName, secretName, secretKey string) coreV1.EnvVar {
+func createSecretEnvVar(envName, secretKey string) coreV1.EnvVar {
 	return coreV1.EnvVar{
 		Name: envName,
 		ValueFrom: &coreV1.EnvVarSource{
 			SecretKeyRef: &coreV1.SecretKeySelector{
 				LocalObjectReference: coreV1.LocalObjectReference{
-					Name: secretName,
+					Name: "test-ecr-renew-aws",
 				},
 				Key: secretKey,
 			},
