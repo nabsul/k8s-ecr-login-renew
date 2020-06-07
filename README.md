@@ -146,7 +146,7 @@ kubectl delete namespace ns-ecr-renew-demo
 
 The example configuration runs in a namespace called `ns-ecr-renew-demo`.
 This is configured using the `TARGET_NAMESPACE` environment variable.
-If it is not provided, the it will fall back to the `default` namespace.
+If it is not provided, it will fall back to the `default` namespace.
 
 # Automated Testing
 
@@ -157,14 +157,15 @@ It will auto-detect the cluster to use,
 and will refuse to run if the namespaces it uses already exist 
 (to avoid accidentally overriding real configurations).
 
-The only prerequisite to running these tests is to have the required AWS secret created.
+Running these tests requires a secret with the needed AWS parameters.
 This can be done with the following command:
 
 ```shell script
-kubectl create secret -n tests-ecr-renew generic ecr-renew-cred-demo \
+kubectl create secret test-ecr-renew-aws-settings \
   --from-literal=REGION=[AWS_REGION] \
   --from-literal=ID=[AWS_KEY_ID] \
   --from-literal=SECRET=[AWS_SECRET]
+  --from-literal=IMAGE=[TEST_IMAGE]
 ```
 
 You can then run the tests by typing:

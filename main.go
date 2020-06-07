@@ -38,10 +38,9 @@ func main() {
 	checkErr(err)
 	fmt.Println("Success.")
 
-	fmt.Printf("Updating kubernetes secret [%s]... ", name)
-
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
+	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces", name, len(namespaces))
 
 	failed := false
 	for _, ns := range namespaces {

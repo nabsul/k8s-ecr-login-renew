@@ -1,26 +1,13 @@
 package test
 
 import (
-	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
-const ConstSvcNamespace = "test-ecr-renew-namespace"
-const ConstSvcName = "test-ecr-renew-svc"
-const ConstRoleName = "test-ecr-renew-role"
-const ConstRoleBindingName = "test-ecr-renew-role-binding"
-const ConstNamespaceRoleName = "test-ecr-renew-cluster-role"
-const ConstNamespaceRoleBinding = "test-ecr-renew-cluster-role-binding"
-
-func CreateServiceAccount(allowedNamespaces []string, canGetNamespaces bool) error {
-
-	c, err := k8s.GetClient()
-	if nil != err {
-		return err
-	}
-
+func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, canGetNamespaces bool) error {
 	account := &coreV1.ServiceAccount{
 		TypeMeta: metaV1.TypeMeta{
 			Kind: "ServiceAccount",
