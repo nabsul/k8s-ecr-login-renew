@@ -4,42 +4,45 @@ import (
 	"fmt"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"github.com/nabsul/k8s-ecr-login-renew/test"
-	rbacVa "k8s.io/api/rbac/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func TestFirst(t *testing.T) {
-	initTest()
-	name := "ns-ecr-demo-1"
-	ns, err := test.CreateNamespace(name)
-	if nil != err {
-		t.Error(err)
-		return
-	}
+func Test_BasicFunction(t *testing.T) {
+	namespaces := []string{test.ConstSvcNamespace}
 
-	if name != ns.Name {
-		t.Error(fmt.Sprintf("names not matching [%s] != [%s]", name, ns.Name))
-		return
-	}
-}
-
-func Test_CreateCronJob(t *testing.T) {
-	initTest()
-	err := test.CreateCronJob("default", "test-job")
-	if nil != err {
+	err := runTest(t, namespaces, namespaces, false)
+	if err != nil {
 		t.Error(err)
-		return
 	}
 }
 
 
-func runTest(namespaces []string, roles []*rbacVa.RoleRef) error {
+func runTest(t *testing.T, namespaces, allowedNamespaces []string, canGetNamespaces bool) error {
+	t.Log("creating namespaces")
 	for _, ns := range namespaces {
 		_, err := test.CreateNamespace(ns)
 		if err != nil {
 			return err
 		}
+	}
+
+	t.Log("Creating service and rolebindings")
+	err := test.CreateServiceAccount(allowedNamespaces, canGetNamespaces)
+	if err != nil {
+		return err
+	}
+
+	t.Log("Creating cron job")
+	err = test.CreateCronJob()
+	if nil != err {
+		return err
+	}
+
+	t.Log("Running the job")
+	err = test.RunCronJob()
+	if nil != err {
+		return err
 	}
 
 	return nil

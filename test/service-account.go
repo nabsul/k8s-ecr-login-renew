@@ -7,12 +7,14 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const ConstSvcNamespace = "ns-test-ecr-renew-job"
+const ConstSvcNamespace = "test-ecr-renew-namespace"
 const ConstSvcName = "test-ecr-renew-svc"
 const ConstRoleName = "test-ecr-renew-role"
 const ConstRoleBindingName = "test-ecr-renew-role-binding"
+const ConstNamespaceRoleName = "test-ecr-renew-cluster-role"
+const ConstNamespaceRoleBinding = "test-ecr-renew-cluster-role-binding"
 
-func CreateServiceAccount(allowedNamespaces []string) error {
+func CreateServiceAccount(allowedNamespaces []string, canGetNamespaces bool) error {
 
 	c, err := k8s.GetClient()
 	if nil != err {
@@ -48,7 +50,62 @@ func CreateServiceAccount(allowedNamespaces []string) error {
 		}
 	}
 
+	if canGetNamespaces {
+		role := createNamespaceRole()
+		_, err = c.RbacV1().ClusterRoles().Create(&role)
+		if err != nil {
+			return err
+		}
+
+		binding := createNamespaceRoleBinding()
+		_, err = c.RbacV1().ClusterRoleBindings().Create(&binding)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func createNamespaceRole() rbacV1.ClusterRole {
+	return rbacV1.ClusterRole{
+		TypeMeta: metaV1.TypeMeta{
+			Kind: "ClusterRole",
+		},
+		ObjectMeta: metaV1.ObjectMeta{
+			Namespace: ConstSvcNamespace,
+			Name: ConstNamespaceRoleName,
+		},
+		Rules: []rbacV1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"namespaces"},
+				Verbs: []string{"list"},
+			},
+		},
+	}
+}
+
+func createNamespaceRoleBinding() rbacV1.ClusterRoleBinding {
+	return rbacV1.ClusterRoleBinding{
+		TypeMeta: metaV1.TypeMeta{
+			Kind: "ClusterRoleBinding",
+		},
+		ObjectMeta: metaV1.ObjectMeta{
+			Namespace: ConstSvcNamespace,
+			Name:      ConstNamespaceRoleBinding,
+		},
+		RoleRef: rbacV1.RoleRef{
+			Kind: "ClusterRoleBinding",
+			Name: ConstNamespaceRoleName,
+		},
+		Subjects: []rbacV1.Subject{
+			{
+				Namespace: ConstSvcNamespace,
+				Name: ConstSvcName,
+			},
+		},
+	}
 }
 
 func createRole(ns string) *rbacV1.Role {
@@ -83,7 +140,7 @@ func createRoleBinding(role *rbacV1.Role, service *coreV1.ServiceAccount) *rbacV
 			Kind: "RoleBinding",
 		},
 		ObjectMeta: metaV1.ObjectMeta{
-			Namespace: role.Name,
+			Namespace: role.Namespace,
 			Name: ConstRoleBindingName,
 		},
 		RoleRef:    rbacV1.RoleRef{
