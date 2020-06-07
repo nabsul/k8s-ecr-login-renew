@@ -13,6 +13,7 @@ type Config struct {
 	T                                 *testing.T
 	SuccessNamespaces, FailNamespaces []string
 	CanGetNamespaces                  bool
+	TargetNamespace                   string
 }
 
 func RunTest(cfg Config) {
@@ -61,7 +62,7 @@ func RunTest(cfg Config) {
 	}
 
 	t.Log("Creating cron job")
-	err = initCronJob(c, awsRegion, awsId, awsSecret)
+	err = initCronJob(c, cfg.TargetNamespace, awsRegion, awsId, awsSecret)
 	if nil != err {
 		printError(t, err)
 		return
@@ -76,13 +77,22 @@ func RunTest(cfg Config) {
 
 	t.Log("Checking job logs")
 	if !strings.Contains(logs, "Fetching auth data from AWS... Success.") {
-		printError(t, errors.New("no AWS success message found"))
+		printError(t, errors.New(fmt.Sprintf("no AWS success message found in \n%s", logs)))
 	}
 
 	for _, ns := range cfg.SuccessNamespaces {
-		msg := fmt.Sprintf("Updating kubernetes secret [%s]... Success.", ns)
+		msg := fmt.Sprintf("Updating secret [%s] in namespace [%s]... success", ConstDockerSecretName, ns)
 		if !strings.Contains(logs, msg) {
-			msg = fmt.Sprintf("no success message found for namespace [%s]", ns)
+			msg = fmt.Sprintf("no success message found for namespace [%s] in \n%s", ns, logs)
+			printError(t, errors.New(msg))
+			return
+		}
+	}
+
+	for _, ns := range cfg.FailNamespaces {
+		msg := fmt.Sprintf("Updating secret [%s] in namespace [%s]... failed:", ConstDockerSecretName, ns)
+		if !strings.Contains(logs, msg) {
+			msg = fmt.Sprintf("no success message found for namespace [%s] in \n%s", ns, logs)
 			printError(t, errors.New(msg))
 			return
 		}

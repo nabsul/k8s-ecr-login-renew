@@ -40,12 +40,12 @@ func main() {
 
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
-	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces", name, len(namespaces))
+	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
 
 	failed := false
 	for _, ns := range namespaces {
 		fmt.Printf("Updating secret [%s] in namespace [%s]... ", name, ns)
-		err = k8s.UpdatePassword(name, username, password, server, ns)
+		err = k8s.UpdatePassword(ns, name, username, password, server)
 		if nil != err {
 			fmt.Printf("failed: %s\n", err)
 			failed = true

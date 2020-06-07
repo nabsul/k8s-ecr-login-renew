@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os/user"
 	"path/filepath"
+	"strings"
 )
 
 const defaultEmail = "awsregrenew@demo.test"
@@ -40,6 +41,9 @@ func getClientConfig() (*rest.Config, error) {
 func deleteOldSecret(client *kubernetes.Clientset, name, namespace string) error {
 	_, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
 	if nil != err {
+		if strings.Contains(err.Error(), "not found") {
+			return nil
+		}
 		return err
 	}
 
@@ -71,7 +75,7 @@ func createSecret(name, username, password, server string) (*v1.Secret, error) {
 	return &secret, nil
 }
 
-func UpdatePassword(name, username, password, server, namespace string) error {
+func UpdatePassword(namespace, name, username, password, server string) error {
 	client, err := GetClient()
 	if nil != err {
 		return err

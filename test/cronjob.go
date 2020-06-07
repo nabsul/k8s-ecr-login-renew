@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-func initCronJob(c *kubernetes.Clientset, awsRegion, awsId, awsSecret string) error {
-	job := createCronJob(awsRegion, awsId, awsSecret)
+func initCronJob(c *kubernetes.Clientset, targetNamespace, awsRegion, awsId, awsSecret string) error {
+	job := createCronJob(targetNamespace, awsRegion, awsId, awsSecret)
 	_, err := c.BatchV1beta1().CronJobs(ConstSvcNamespace).Create(&job)
 	return err
 }
@@ -30,11 +30,17 @@ func runCronJob(c *kubernetes.Clientset) (string, error) {
 		return "", err
 	}
 
+	checkCount := 0
 	for run.Status.CompletionTime == nil {
 		time.Sleep(5 * time.Second)
 		run, err = c.BatchV1().Jobs(ConstSvcNamespace).Get(job.Name, getOpt)
 		if err != nil {
 			return "", err
+		}
+
+		checkCount += 1
+		if checkCount >= 10 {
+			return "", errors.New("job ran for too long")
 		}
 	}
 
@@ -72,7 +78,8 @@ func createJob(cron v1beta1.CronJob) batchV1.Job {
 	}
 }
 
-func createCronJob(awsRegion, awsId, awsSecret string) v1beta1.CronJob {
+func createCronJob(targetNamespace, awsRegion, awsId, awsSecret string) v1beta1.CronJob {
+	one := int32(1)
 	return v1beta1.CronJob{
 		TypeMeta: metaV1.TypeMeta{
 			Kind:       "CronJob",
@@ -86,11 +93,15 @@ func createCronJob(awsRegion, awsId, awsSecret string) v1beta1.CronJob {
 			},
 		},
 		Spec: v1beta1.CronJobSpec{
+			ConcurrencyPolicy: "Forbid",
 			Schedule: "0 0 1 1 1", // set to a value in the past so it never triggers
 			JobTemplate: v1beta1.JobTemplateSpec{
 				Spec: batchV1.JobSpec{
+					Parallelism: &one,
+					Completions: &one,
+					BackoffLimit: &one,
 					Template: coreV1.PodTemplateSpec{
-						Spec: getPodSpec(awsRegion, awsId, awsSecret),
+						Spec: getPodSpec(targetNamespace, awsRegion, awsId, awsSecret),
 					},
 				},
 			},
@@ -98,17 +109,18 @@ func createCronJob(awsRegion, awsId, awsSecret string) v1beta1.CronJob {
 	}
 }
 
-func getPodSpec(awsRegion, awsId, awsSecret string) coreV1.PodSpec {
+func getPodSpec(targetNamespace, awsRegion, awsId, awsSecret string) coreV1.PodSpec {
 	return coreV1.PodSpec{
-		RestartPolicy:      "OnFailure",
+		RestartPolicy:      "Never",
 		ServiceAccountName: ConstSvcName,
 		Containers: []coreV1.Container{
 			{
 				Name:  "ecr-renew",
-				Image: "nabsul/k8s-ecr-login-renew:latest",
+				Image: "test-ecr-renew",
+				ImagePullPolicy: "IfNotPresent",
 				Env: []coreV1.EnvVar{
-					{Name: "DOCKER_SECRET_NAME", Value: "test-ecr-renew-docker-login"},
-					{Name: "TARGET_NAMESPACE", Value: ConstSvcNamespace},
+					{Name: "DOCKER_SECRET_NAME", Value: ConstDockerSecretName},
+					{Name: "TARGET_NAMESPACE", Value: targetNamespace},
 					{Name: "AWS_REGION", Value: awsRegion},
 					{Name: "AWS_ACCESS_KEY_ID", Value: awsId},
 					{Name: "AWS_SECRET_ACCESS_KEY", Value: awsSecret},
