@@ -1,45 +1,74 @@
 package k8s
 
 import (
-	. "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"regexp"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	. "regexp"
 	"strings"
 )
 
 func GetNamespaces(envVar string) ([]string, error) {
 	list := strings.Split(envVar, ",")
-	wildcardMatches, err := getWildCardMatches(list)
-	if nil != err {
+	single := make([]string, 0, len(list))
+	regex := make([]*Regexp, 0, len(list))
+
+	for _, val := range list {
+		if hasWildCard(val) {
+			r, err := getRegex(val)
+			if err != nil {
+				return nil, err
+			}
+			regex = append(regex, r)
+		} else {
+			single = append(single, val)
+		}
+	}
+
+	matchedNamespaces, err := findNamespaces(regex)
+	if err != nil {
 		return nil, err
 	}
 
-	list = append(list, wildcardMatches...)
-	return list, nil
+	return append(single, matchedNamespaces...), nil
 }
 
-func getWildCardMatches(list []string) ([]string, error) {
-	var result []string
+func hasWildCard(val string) bool {
+	for _, r := range []rune{'*', '?'} {
+		if strings.ContainsRune(val, r) {
+			return true
+		}
+	}
+	return false
+}
 
-	wildcards, err := getWildCardRegexes(list)
-	if nil != err || 0 == len(wildcards){
-		return result, err
+func getRegex(val string) (*Regexp, error) {
+	regex := strings.Replace(val, "*", ".*", -1)
+	regex = strings.Replace(regex, "?", ".", -1)
+	regex = "^" + regex + "$"
+	return Compile(regex)
+}
+
+func findNamespaces(regex []*Regexp) ([]string, error) {
+	if len(regex) == 0 {
+		return nil, nil
 	}
 
-	namespaces, err := GetAllNamespaces()
-	if nil != err {
-		return result, err
+	namespaces, err := getAllNamespaces()
+	if err != nil {
+		return nil, err
 	}
 
+	result := make([]string, 0, len(namespaces))
 	for _, ns := range namespaces {
-		if isAnyMatch(ns, wildcards) {
+		if isAnyMatch(ns, regex) {
 			result = append(result, ns)
+			break
 		}
 	}
 
 	return result, nil
 }
 
-func isAnyMatch(ns string, regexes []*regexp.Regexp) bool {
+func isAnyMatch(ns string, regexes []*Regexp) bool {
 	for _, r := range regexes {
 		if r.MatchString(ns) {
 			return true
@@ -49,28 +78,7 @@ func isAnyMatch(ns string, regexes []*regexp.Regexp) bool {
 	return false
 }
 
-func getWildCardRegexes(list []string) ([]*regexp.Regexp, error) {
-	var result []*regexp.Regexp
-	for _, ns := range list {
-		if !strings.Contains(ns, "*") && !strings.Contains(ns, "?") {
-			continue
-		}
-
-		regex := strings.Replace(ns, "*", ".*", -1)
-		regex = strings.Replace(ns, "?", ".", -1)
-		regex = "^" + regex + "$"
-		r, err := regexp.Compile(regex)
-		if nil != err {
-			return nil, err
-		}
-
-		result = append(result, r)
-	}
-
-	return result, nil
-}
-
-func GetAllNamespaces() ([]string, error) {
+func getAllNamespaces() ([]string, error) {
 	var result []string
 
 	client, err := GetClient()
@@ -78,7 +86,7 @@ func GetAllNamespaces() ([]string, error) {
 		return nil, err
 	}
 
-	opts := ListOptions{}
+	opts := metaV1.ListOptions{}
 	first := true
 
 	for first || opts.Continue != "" {

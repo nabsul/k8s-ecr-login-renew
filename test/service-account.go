@@ -18,11 +18,12 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 		},
 	}
 
-	svc, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(account)
+	_, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(account)
 	if err != nil {
 		return err
 	}
 
+	/*
 	for _, ns := range allowedNamespaces {
 		role := createRole(ns)
 		_, err = c.RbacV1().Roles(ns).Create(role)
@@ -50,6 +51,7 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 			return err
 		}
 	}
+	 */
 
 	return nil
 }

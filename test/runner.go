@@ -19,6 +19,7 @@ type config struct {
 }
 
 func runTest(cfg config) {
+	cleanup(cfg.createdNamespaces)
 	//cfg.t.Cleanup(func(){cleanup(cfg.createdNamespaces)})
 
 	t := cfg.t
@@ -113,7 +114,7 @@ func cleanup(namespaces []string) {
 	for _, ns := range namespaces {
 		err = c.CoreV1().Namespaces().Delete(ns, &metaV1.DeleteOptions{})
 		if err != nil {
-			fmt.Printf("Failed to cleanup namespace [%s]: [%s}", ns, err)
+			fmt.Printf("Failed to cleanup namespace [%s]: [%s}\n", ns, err)
 		}
 	}
 }

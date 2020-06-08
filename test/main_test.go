@@ -1,7 +1,6 @@
 package test
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -29,14 +28,22 @@ func Test_BasicFunction(t *testing.T) {
 	})
 }
 
-func Test_OneSuccessOneFail(t *testing.T) {
-	namespaces := []string{spaces["_"], spaces["1"], spaces["2"]}
+func Test_DeployToAll(t *testing.T) {
+	namespaces := allNamespaces()
 	runTest(config{
 		t:                 t,
 		createdNamespaces: namespaces,
-		successNamespaces: []string{spaces["_"], spaces["1"]},
-		failNamespaces:    []string{spaces["2"]},
+		successNamespaces: namespaces,
+		failNamespaces:    []string{},
 		canGetNamespaces:  false,
-		targetNamespace:   strings.Join(namespaces, ","),
+		targetNamespace:   "test-ecr-renew-*",
 	})
+}
+
+func allNamespaces() []string {
+	result := make([]string, 0, len(spaces))
+	for _, v := range spaces {
+		result = append(result, v)
+	}
+	return result
 }
