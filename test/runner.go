@@ -7,6 +7,7 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 	"testing"
+	"time"
 )
 
 type config struct {
@@ -20,6 +21,7 @@ type config struct {
 
 func runTest(cfg config) {
 	cleanup(cfg.createdNamespaces)
+	time.Sleep(10 * time.Second)
 	//cfg.t.Cleanup(func(){cleanup(cfg.createdNamespaces)})
 
 	t := cfg.t
@@ -79,6 +81,13 @@ func runTest(cfg config) {
 	t.Log("Checking job logs")
 	if !strings.Contains(logs, "Fetching auth data from AWS... Success.") {
 		printError(t, errors.New(fmt.Sprintf("no AWS success message found")))
+	}
+
+	expectedUpdates := len(cfg.successNamespaces) + len(cfg.failNamespaces)
+	actualUpdates := strings.Count(logs, "Updating secret in namespace")
+	if actualUpdates != expectedUpdates {
+		msg := fmt.Sprintf("unexpected number of updates %d != %d", expectedUpdates, actualUpdates)
+		printError(t, errors.New(msg))
 	}
 
 	for _, ns := range cfg.successNamespaces {

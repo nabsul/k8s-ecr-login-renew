@@ -61,7 +61,6 @@ func findNamespaces(regex []*Regexp) ([]string, error) {
 	for _, ns := range namespaces {
 		if isAnyMatch(ns, regex) {
 			result = append(result, ns)
-			break
 		}
 	}
 
