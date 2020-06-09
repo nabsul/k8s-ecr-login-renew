@@ -18,42 +18,47 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 		},
 	}
 
-	_, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(account)
+	svc, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(account)
 	if err != nil {
 		return err
 	}
 
-	/*
 	for _, ns := range allowedNamespaces {
-		role := createRole(ns)
-		_, err = c.RbacV1().Roles(ns).Create(role)
-		if err != nil {
-			return err
-		}
-
-		binding := createRoleBinding(role, svc)
-		_, err = c.RbacV1().RoleBindings(ns).Create(binding)
+		err = grantNamespaceAccess(c, ns, svc)
 		if err != nil {
 			return err
 		}
 	}
 
 	if canGetNamespaces {
-		role := createNamespaceRole()
-		_, err = c.RbacV1().ClusterRoles().Create(&role)
-		if err != nil {
-			return err
-		}
-
-		binding := createNamespaceRoleBinding()
-		_, err = c.RbacV1().ClusterRoleBindings().Create(&binding)
-		if err != nil {
-			return err
-		}
+		err = grantNamespaceList(c)
 	}
-	 */
 
-	return nil
+	return err
+}
+
+func grantNamespaceAccess(c *kubernetes.Clientset, ns string, svc *coreV1.ServiceAccount) error {
+	role := createRole(ns)
+	_, err := c.RbacV1().Roles(ns).Create(role)
+	if err != nil {
+		return err
+	}
+
+	binding := createRoleBinding(role, svc)
+	_, err = c.RbacV1().RoleBindings(ns).Create(binding)
+	return err
+}
+
+func grantNamespaceList(c *kubernetes.Clientset) error {
+	role := createNamespaceRole()
+	_, err := c.RbacV1().ClusterRoles().Create(&role)
+	if err != nil {
+		return err
+	}
+
+	binding := createNamespaceRoleBinding()
+	_, err = c.RbacV1().ClusterRoleBindings().Create(&binding)
+	return err
 }
 
 func createNamespaceRole() rbacV1.ClusterRole {
