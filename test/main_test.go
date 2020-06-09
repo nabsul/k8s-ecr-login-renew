@@ -1,49 +1,88 @@
 package test
 
 import (
+	"strings"
 	"testing"
 )
 
-var spaces = map[string]string {
-	"_": ConstSvcNamespace,
-	"1": "test-ecr-renew-ns1",
-	"2": "test-ecr-renew-ns2",
-	"3": "test-ecr-renew-ns3",
-	"11": "test-ecr-renew-ns11",
-	"12": "test-ecr-renew-ns12",
-	"13": "test-ecr-renew-ns13",
-	"21": "test-ecr-renew-ns21",
-	"22": "test-ecr-renew-ns22",
-	"23": "test-ecr-renew-ns23",
-}
-
-func Test_BasicFunction(t *testing.T) {
+func Test_NoTargetNamespace(t *testing.T) {
 	runTest(config{
 		t:                 t,
-		createdNamespaces: []string{ConstSvcNamespace},
+		successNamespaces: []string{"default"},
+		targetNamespace:   "",
+	})
+}
+
+func Test_SingleNamespace(t *testing.T) {
+	runTest(config{
+		t:                 t,
 		successNamespaces: []string{ConstSvcNamespace},
-		failNamespaces:    []string{},
-		canGetNamespaces:  false,
 		targetNamespace:   ConstSvcNamespace,
 	})
 }
 
-func Test_DeployToAll(t *testing.T) {
+func Test_SingleNamespace2(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: []string{spaces["22"]},
+		targetNamespace:   spaces["22"],
+	})
+}
+
+func Test_TwoNamespaces(t *testing.T) {
+	namespaces := []string{spaces["3"], spaces["12"]}
+	runTest(config{
+		t:                 t,
+		successNamespaces: namespaces,
+		targetNamespace:   strings.Join(namespaces, ","),
+	})
+}
+
+func Test_WithStar(t *testing.T) {
 	namespaces := allNamespaces()
 	runTest(config{
 		t:                 t,
-		createdNamespaces: namespaces,
 		successNamespaces: namespaces,
-		failNamespaces:    []string{},
-		canGetNamespaces:  false,
 		targetNamespace:   "test-ecr-renew-*",
 	})
 }
 
-func allNamespaces() []string {
-	result := make([]string, 0, len(spaces))
-	for _, v := range spaces {
-		result = append(result, v)
-	}
-	return result
+func Test_WithQuestionMark(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: []string{spaces["12"], spaces["22"]},
+		targetNamespace:   "test-ecr-renew-ns?2",
+	})
+}
+
+func Test_WithStarAndQuestionMark(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: []string{spaces["12"], spaces["22"]},
+		targetNamespace:   "test-ecr-*-ns?2",
+	})
+}
+
+func Test_OverlappingResults1(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: allNamespaces(),
+		targetNamespace:   "test-ecr-renew-ns13,test-ecr-renew-ns?2,test-ecr-renew-*",
+	})
+}
+
+func Test_OverlappingResults2(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: allNamespaces(),
+		targetNamespace:   "test-ecr-renew-ns?2,test-ecr-renew-*,test-ecr-renew-ns13",
+	})
+}
+
+func Test_OverlappingResults3(t *testing.T) {
+	runTest(config{
+		t:                 t,
+		successNamespaces: allNamespaces(),
+		targetNamespace:   "test-ecr-renew-*,test-ecr-renew-ns13,test-ecr-renew-ns?2",
+	})
 }

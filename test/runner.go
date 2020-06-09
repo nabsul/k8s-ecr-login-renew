@@ -6,23 +6,11 @@ import (
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
-	"testing"
 	"time"
 )
 
-type config struct {
-	t                 *testing.T
-	createdNamespaces []string
-	successNamespaces []string
-	failNamespaces    []string
-	canGetNamespaces  bool
-	targetNamespace   string
-}
-
 func runTest(cfg config) {
-	cleanup(cfg.createdNamespaces)
-	time.Sleep(10 * time.Second)
-	//cfg.t.Cleanup(func(){cleanup(cfg.createdNamespaces)})
+	cfg.t.Cleanup(func(){cleanup(cfg)})
 
 	t := cfg.t
 	c, err := k8s.GetClient()
@@ -31,14 +19,14 @@ func runTest(cfg config) {
 		return
 	}
 
-	err = checkNamespaces(c, cfg.createdNamespaces)
+	err = checkNamespaces(c, allNamespaces())
 	if err != nil {
 		printError(t, err)
 		return
 	}
 
-	t.Log("Creating namespaces")
-	for _, ns := range cfg.createdNamespaces {
+	t.Log("creating namespaces")
+	for _, ns := range allNamespaces() {
 		_, err := createNamespace(c, ns)
 		if err != nil {
 			printError(t, err)
@@ -46,8 +34,8 @@ func runTest(cfg config) {
 		}
 	}
 
-	t.Log("Creating service and permissions")
-	err = createServiceAccount(c, cfg.successNamespaces, cfg.canGetNamespaces)
+	t.Log("creating service and permissions")
+	err = createServiceAccount(c, []string{}, false)
 	if err != nil {
 		printError(t, err)
 		return
@@ -64,26 +52,26 @@ func runTest(cfg config) {
 		return
 	}
 
-	t.Log("Creating cron job")
+	t.Log("creating cron job")
 	err = initCronJob(c, cfg.targetNamespace, awsRegion, awsId, awsSecret)
 	if nil != err {
 		printError(t, err)
 		return
 	}
 
-	t.Log("Running the job")
+	t.Log("running the job")
 	logs, err := runCronJob(c)
 	if nil != err {
 		printError(t, err)
 		return
 	}
 
-	t.Log("Checking job logs")
+	t.Log("checking job logs")
 	if !strings.Contains(logs, "Fetching auth data from AWS... Success.") {
 		printError(t, errors.New(fmt.Sprintf("no AWS success message found")))
 	}
 
-	expectedUpdates := len(cfg.successNamespaces) + len(cfg.failNamespaces)
+	expectedUpdates := len(cfg.successNamespaces)
 	actualUpdates := strings.Count(logs, "Updating secret in namespace")
 	if actualUpdates != expectedUpdates {
 		msg := fmt.Sprintf("unexpected number of updates %d != %d", expectedUpdates, actualUpdates)
@@ -91,7 +79,7 @@ func runTest(cfg config) {
 	}
 
 	for _, ns := range cfg.successNamespaces {
-		t.Logf("Checking for success: %s", ns)
+		t.Logf("checking for success: %s", ns)
 		msg := fmt.Sprintf("Updating secret in namespace [%s]... success", ns)
 		if !strings.Contains(logs, msg) {
 			msg = fmt.Sprintf("no success message found for namespace [%s]", ns)
@@ -99,14 +87,16 @@ func runTest(cfg config) {
 		}
 	}
 
+	/* Not currently implemented
 	for _, ns := range cfg.failNamespaces {
-		t.Logf("Checking for failure: %s", ns)
+		t.Logf("checking for failure: %s", ns)
 		msg := fmt.Sprintf("Updating secret in namespace [%s]... failed:", ns)
 		if !strings.Contains(logs, msg) {
 			msg = fmt.Sprintf("no fail message found for namespace [%s]", ns)
 			printError(t, errors.New(msg))
 		}
 	}
+	 */
 
 	if t.Failed() {
 		printError(t, errors.New(logs))
@@ -114,16 +104,21 @@ func runTest(cfg config) {
 }
 
 // as long as we only create stuff in namespaces, deleting the namespaces should
-func cleanup(namespaces []string) {
+func cleanup(cfg config) {
+	cfg.t.Log("cleaning up...")
+
 	c, err := k8s.GetClient()
 	if nil != err {
 		return
 	}
 
-	for _, ns := range namespaces {
+	for _, ns := range allNamespaces() {
 		err = c.CoreV1().Namespaces().Delete(ns, &metaV1.DeleteOptions{})
 		if err != nil {
-			fmt.Printf("Failed to cleanup namespace [%s]: [%s}\n", ns, err)
+			fmt.Printf("failed to cleanup namespace [%s]: [%s}\n", ns, err)
 		}
 	}
+
+	cfg.t.Log("giving namespaces time to go away...")
+	time.Sleep(10 * time.Second)
 }

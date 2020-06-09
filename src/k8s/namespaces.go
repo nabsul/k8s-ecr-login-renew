@@ -28,7 +28,20 @@ func GetNamespaces(envVar string) ([]string, error) {
 		return nil, err
 	}
 
-	return append(single, matchedNamespaces...), nil
+	return unique(append(single, matchedNamespaces...)), nil
+}
+
+func unique(values []string) []string {
+	result := make([]string, 0, len(values))
+	check := map[string]bool{}
+	for _, val := range values {
+		_, ok := check[val]
+		if !ok {
+			check[val] = true
+			result = append(result, val)
+		}
+	}
+	return result
 }
 
 func hasWildCard(val string) bool {

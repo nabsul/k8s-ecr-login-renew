@@ -152,23 +152,17 @@ If it is not provided, it will fall back to the `default` namespace.
 
 Since this tool is mostly "glue" between AWS and Kuberenetes,
 I've decided that unit tests are not so useful.
-Instead, the tests in this code are designed to run against a real Kubernetes cluster.
+Instead, the tests here are designed to run against a real Kubernetes cluster.
 It will auto-detect the cluster to use, 
 and will refuse to run if the namespaces it uses already exist 
 (to avoid accidentally overriding real configurations).
 
-Running these tests locally has two prerequisites:
+> note: I have only tried running these unit tests on my local Windows machine with  Docker Desktop.
+
+Running these tests locally has the following prerequisites:
  
-- A secret with the needed AWS parameters
-- A built image of the tool named `test-ecr-renew`
-
-You can build the tool locally with this command:
-
-```shell script
-docker build -t test-ecr-renew .
-```
-
-This can be done with the following command:
+- Build an image of the tool:  `docker build -t test-ecr-renew .`
+- Create a secret with the needed AWS parameters:
 
 ```shell script
 kubectl create secret test-ecr-renew-aws-settings \
@@ -181,5 +175,11 @@ kubectl create secret test-ecr-renew-aws-settings \
 You can then run the tests by typing:
 
 ```shell script
-go test -v
+go test -v ./test/...
 ```
+
+## Test Limitation
+
+One of the biggest things I am currently not testing are permissions.
+This is mostly due to laziness on my part:
+I couldn't figure out how to get Docker Desktop to enforce RBAC permissions. 
