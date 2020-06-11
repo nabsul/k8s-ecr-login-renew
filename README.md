@@ -153,7 +153,7 @@ If it is not provided, it will fall back to the `default` namespace.
 The `TARGET_NAMESPACE` environment variable can also be used to indicate multiple namespaces.
 This can be done using comma-separated names as wildcards.
 The two wildcard characters are `?` (match a single character) and `*` (match zero or more characters).
-The following values are valid for the `TARGET_NAMESPACE` namespaces:
+The following values are valid for the `TARGET_NAMESPACE` environment variable:
 
 - `namespace1`
 - `namespace1,namespace2`
