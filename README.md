@@ -148,6 +148,22 @@ The example configuration runs in a namespace called `ns-ecr-renew-demo`.
 This is configured using the `TARGET_NAMESPACE` environment variable.
 If it is not provided, it will fall back to the `default` namespace.
 
+### Multiple Namespace Support
+
+The `TARGET_NAMESPACE` environment variable can also be used to indicate multiple namespaces.
+This can be done using comma-separated names as wildcards.
+The two wildcard characters are `?` (match a single character) and `*` (match zero or more characters).
+The following values are valid for the `TARGET_NAMESPACE` namespaces:
+
+- `namespace1`
+- `namespace1,namespace2`
+- `*`
+- `namespaece1,prefix-*,*-suffix`
+- `namespace1,namespace?0`
+
+> Note: If you decide to use wildcards,
+> the tool must be granted permission to list all namespaces in your cluster.
+
 # Automated Testing
 
 Since this tool is mostly "glue" between AWS and Kuberenetes,
