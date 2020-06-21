@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3 (2020-06-07)
+
+- Added support for ARM (tested by [Q-Nimbus](https://github.com/Q-Nimbus) on Raspberry Pi)
+
 ## v1.2 (2020-06-07)
 
 - `TARGET_NAMESPACE` now supports multiple namespaces and wildcards (Suggested by [Q-Nimbus](https://github.com/Q-Nimbus))
@@ -10,7 +14,7 @@
 
 - Added environment variable to specify a namespace (Contribution from [YoSmudge](https://github.com/YoSmudge))
 - Add a changelog
-- Add a contributors list
+- Add a contributor list
 
 ## v1.0 (2020-03-22)
 
