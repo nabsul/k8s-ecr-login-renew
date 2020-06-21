@@ -2,7 +2,7 @@
 
 ## v1.3 (2020-06-07)
 
-- Added support for ARM (tested by [Q-Nimbus](https://github.com/Q-Nimbus) on Raspberry Pi)
+- Added support for ARM (tested by [kuskoman](https://github.com/kuskoman) on Raspberry Pi)
 
 ## v1.2 (2020-06-07)
 
