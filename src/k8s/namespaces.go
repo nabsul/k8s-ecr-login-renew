@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	. "regexp"
 	"strings"
 
@@ -104,7 +105,7 @@ func getAllNamespaces() ([]string, error) {
 
 	for first || opts.Continue != "" {
 		first = false
-		res, err := client.CoreV1().Namespaces().List(opts)
+		res, err := client.CoreV1().Namespaces().List(context.Background(), opts)
 		if nil != err {
 			return nil, err
 		}

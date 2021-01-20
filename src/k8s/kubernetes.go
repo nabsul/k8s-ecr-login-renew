@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"os/user"
@@ -40,15 +41,15 @@ func getClientConfig() (*rest.Config, error) {
 }
 
 func deleteOldSecret(client *kubernetes.Clientset, name, namespace string) error {
-	_, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
+	_, err := client.CoreV1().Secrets(namespace).Get(context.Background(), name, GetOptions{})
 	if nil != err {
 		if strings.Contains(err.Error(), "not found") {
 			return nil
 		}
 		return err
 	}
-
-	return client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
+	var do = &DeleteOptions{}
+	return client.CoreV1().Secrets(namespace).Delete(context.Background(), name, *do)
 }
 
 func createSecret(name, username, password, server string) (*v1.Secret, error) {
@@ -91,7 +92,7 @@ func UpdatePassword(namespace, name, username, password, server string) error {
 	if nil != err {
 		return err
 	}
-
-	_, err = client.CoreV1().Secrets(namespace).Create(secret)
+	var co = &CreateOptions{}
+	_, err = client.CoreV1().Secrets(namespace).Create(context.Background(), secret, *co)
 	return err
 }
