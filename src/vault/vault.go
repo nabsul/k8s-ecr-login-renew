@@ -2,6 +2,7 @@ package vault
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -19,20 +20,21 @@ func LoginVault(vaultAddr, staticToken, path string) (map[string]string, error) 
 	}
 	client, err := api.NewClient(&api.Config{Address: vaultAddr, HttpClient: httpClient})
 	if err != nil {
-		panic(err)
+		panic(errors.New("Error in reading vault address : " + err.Error()))
 	}
 
 	client.SetToken(staticToken)
 	data, err := client.Logical().Read(path)
 	if err != nil {
-		panic(err)
+		panic(errors.New("Error in retrveing vault data : " + err.Error()))
 	}
 
 	var result map[string]string
 
 	b, err := json.Marshal(data.Data["data"])
 	if err != nil {
-		panic(err)
+		panic(errors.New("Error in reading vault data : " + err.Error()))
+
 	}
 
 	err = json.Unmarshal(b, &result)
