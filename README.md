@@ -15,6 +15,18 @@ The tool is build for standard 64-bit Linux and ARM (Raspberry Pi). The latest i
 - `nabsul/k8s-ecr-login-renew:v1.3`
 - `nabsul/k8s-ecr-login-renew:arm32v7-v1.3`
 
+## Environment Variables
+
+The repository provides access to environment variables that will allow you to configure the service in better way : 
+| Environment variable   |      Default      |  Description |
+|----------|:-------------:|------:|
+| DOCKER_SECRET_NAME |  - | Name of the secret where the final docker creds are to be saved |
+| TARGET_NAMESPACE |    default   |   Target namespace for saving Docker credentials |
+| VAULT_ENBALE | false |    If you want to enable Hashicorp vault for AWS secrets access |
+| VAULT_ADDR | - |    Hostname of the vault instance |
+| VAULT_TOKEN | - |    Vault token to access secrets |
+| VAULT_SECRET_PATH | - |    path to vault secret engine where AWS secrets are stored, the store must have secrets saved with default AWS secret environment variables name, i.e. AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION  |
+
 ## Running the Example
 
 The following sections describe step-by-step how to set the cron job up and test it.
