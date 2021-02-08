@@ -1,9 +1,11 @@
 package k8s
 
 import (
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"context"
 	. "regexp"
 	"strings"
+
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func GetNamespaces(envVar string) ([]string, error) {
@@ -103,7 +105,7 @@ func getAllNamespaces() ([]string, error) {
 
 	for first || opts.Continue != "" {
 		first = false
-		res, err := client.CoreV1().Namespaces().List(opts)
+		res, err := client.CoreV1().Namespaces().List(context.Background(), opts)
 		if nil != err {
 			return nil, err
 		}

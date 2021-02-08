@@ -3,15 +3,21 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
-	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"os"
 	"time"
+
+	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
+	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
+	"github.com/nabsul/k8s-ecr-login-renew/src/vault"
 )
 
 const (
 	envVarAwsSecret       = "DOCKER_SECRET_NAME"
 	envVarTargetNamespace = "TARGET_NAMESPACE"
+	envVarVaultEnable     = "VAULT_ENBALE"
+	envVarVaultAddr       = "VAULT_ADDR"
+	envVarVaultToken      = "VAULT_TOKEN"
+	envVarVaultPath       = "VAULT_SECRET_PATH"
 )
 
 func checkErr(err error) {
@@ -25,7 +31,7 @@ func main() {
 
 	name := os.Getenv(envVarAwsSecret)
 	if name == "" {
-		panic(fmt.Sprintf("Environment variable %s is required", name))
+		panic(fmt.Sprintf("Environment variable %s is required", envVarAwsSecret))
 	}
 
 	namespaceList := os.Getenv(envVarTargetNamespace)
@@ -33,10 +39,40 @@ func main() {
 		namespaceList = "default"
 	}
 
-	fmt.Print("Fetching auth data from AWS... ")
-	username, password, server, err := aws.GetUserAndPass()
-	checkErr(err)
-	fmt.Println("Success.")
+	// AWS ECR login variables
+	var username, password, server string
+
+	vaultEnable := os.Getenv(envVarVaultEnable)
+	if vaultEnable != "true" {
+
+		vaultAddr := os.Getenv(envVarVaultAddr)
+		if vaultAddr == "" {
+			panic(fmt.Sprintf("Environment variable %s is required", envVarVaultAddr))
+		}
+
+		vaultToken := os.Getenv(envVarVaultToken)
+		if vaultToken == "" {
+			panic(fmt.Sprintf("Environment variable %s is required", envVarVaultToken))
+		}
+
+		vaultPath := os.Getenv(envVarVaultPath)
+		if vaultPath == "" {
+			panic(fmt.Sprintf("Environment variable %s is required", envVarVaultPath))
+		}
+		result, err := vault.LoginVault(vaultAddr, vaultToken, vaultPath)
+
+		fmt.Print("Fetching auth data from AWS Securely... ")
+		username, password, server, err = aws.GetUserAndPass(result["AWS_ACCESS_KEY_ID"], result["AWS_SECRET_ACCESS_KEY"], result["AWS_REGION"])
+		checkErr(err)
+		fmt.Println("Success.", username, password, server)
+
+	} else {
+		fmt.Print("Fetching auth data from AWS... ")
+		var err error
+		username, password, server, err = aws.GetUserAndPass("", "", "")
+		checkErr(err)
+		fmt.Println("Success.")
+	}
 
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
