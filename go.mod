@@ -1,6 +1,6 @@
 module github.com/nabsul/k8s-ecr-login-renew
 
-go 1.14
+go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.29.15

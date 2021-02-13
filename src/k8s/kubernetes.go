@@ -38,19 +38,19 @@ func getClientConfig() (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", filepath.Join(u.HomeDir, ".kube", "config"))
 }
 
-func deleteOldSecret(client *kubernetes.Clientset, name, namespace string) error {
-	_, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
+func getSecret(client *kubernetes.Clientset, name, namespace string) (*v1.Secret, error) {
+	secret, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
 	if nil != err {
 		if strings.Contains(err.Error(), "not found") {
-			return nil
+			return nil, nil
 		}
-		return err
+		return nil, err
 	}
 
-	return client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
+	return secret, nil
 }
 
-func createSecret(name, username, password, server string) (*v1.Secret, error) {
+func getConfig(username, password, server string) ([]byte, error) {
 	config := map[string]map[string]map[string]string{
 		"auths": {
 			server: {
@@ -66,13 +66,15 @@ func createSecret(name, username, password, server string) (*v1.Secret, error) {
 	if nil != err {
 		return nil, err
 	}
+	return configJson, nil
+}
 
+func createSecret(name string) *v1.Secret {
 	secret := v1.Secret{}
 	secret.Name = name
 	secret.Type = v1.SecretTypeDockerConfigJson
 	secret.Data = map[string][]byte{}
-	secret.Data[v1.DockerConfigJsonKey] = configJson
-	return &secret, nil
+	return &secret
 }
 
 func UpdatePassword(namespace, name, username, password, server string) error {
@@ -81,16 +83,25 @@ func UpdatePassword(namespace, name, username, password, server string) error {
 		return err
 	}
 
-	err = deleteOldSecret(client, name, namespace)
+	secret, err := getSecret(client, name, namespace)
 	if nil != err {
 		return err
 	}
 
-	secret, err := createSecret(name, username, password, server)
+	createOrUpdate := client.CoreV1().Secrets(namespace).Update
+
+	if secret == nil {
+		secret = createSecret(name)
+		createOrUpdate = client.CoreV1().Secrets(namespace).Create
+	}
+
+	configJson, err := getConfig(username, password, server)
 	if nil != err {
 		return err
 	}
 
-	_, err = client.CoreV1().Secrets(namespace).Create(secret)
+	secret.Data[v1.DockerConfigJsonKey] = configJson
+
+	_, err = createOrUpdate(secret)
 	return err
 }

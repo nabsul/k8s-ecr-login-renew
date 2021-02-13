@@ -1,4 +1,4 @@
 .vs
 .idea
-k8s-awsreg-renew.exe
-k8s-awsreg-renew
+k8s-ecr-login-renew.exe
+k8s-ecr-login-renew
