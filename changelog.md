@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4 (2021-02-13)
+
+- Update Docker secrets instead of delete+create
+- Fall back to old delete+create if update fails to avoid breaking old users
+
 ## v1.3 (2020-06-07)
 
 - Added support for ARM (tested by [kuskoman](https://github.com/kuskoman) on Raspberry Pi)

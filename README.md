@@ -12,8 +12,8 @@ will always be able to pull Docker images from ECR.
 
 The tool is build for standard 64-bit Linux and ARM (Raspberry Pi). The latest images are:
 
-- `nabsul/k8s-ecr-login-renew:v1.3`
-- `nabsul/k8s-ecr-login-renew:arm32v7-v1.3`
+- `nabsul/k8s-ecr-login-renew:v1.4`
+- `nabsul/k8s-ecr-login-renew:arm32v7-v1.4`
 
 ## Running the Example
 
