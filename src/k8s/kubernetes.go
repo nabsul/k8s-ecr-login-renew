@@ -88,21 +88,33 @@ func UpdatePassword(namespace, name, username, password, server string) error {
 		return err
 	}
 
-	var createOrUpdate func(*v1.Secret) (*v1.Secret, error)
-	if secret == nil {
-		secret = createSecret(name)
-		createOrUpdate = client.CoreV1().Secrets(namespace).Create
-	} else {
-		createOrUpdate = client.CoreV1().Secrets(namespace).Update
-	}
-
 	configJson, err := getConfig(username, password, server)
 	if nil != err {
 		return err
 	}
 
-	secret.Data[v1.DockerConfigJsonKey] = configJson
+	if secret == nil {
+		secret = createSecret(name)
+		secret.Data[v1.DockerConfigJsonKey] = configJson
+		_, err = client.CoreV1().Secrets(namespace).Create(secret)
+		return err
+	}
 
-	_, err = createOrUpdate(secret)
+	secret.Data[v1.DockerConfigJsonKey] = configJson
+	_, err = client.CoreV1().Secrets(namespace).Update(secret)
+
+	if err == nil {
+		return nil
+	}
+
+	// fall back to delete+create in case permissions are not updated
+	err = client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	secret = createSecret(name)
+	secret.Data[v1.DockerConfigJsonKey] = configJson
+	_, err = client.CoreV1().Secrets(namespace).Create(secret)
 	return err
 }
