@@ -2,7 +2,7 @@
 
 ## v1.4 (2021-02-13)
 
-- Update Docker secrets instead of delete+create
+- Update Docker secrets instead of delete+create (suggested by [xavidop](https://github.com/xavidop) in [issue 15](https://github.com/nabsul/k8s-ecr-login-renew/issues/15))
 - Fall back to old delete+create if update fails to avoid breaking old users
 
 ## v1.3 (2020-06-07)
