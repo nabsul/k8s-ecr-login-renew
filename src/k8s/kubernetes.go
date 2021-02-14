@@ -88,11 +88,12 @@ func UpdatePassword(namespace, name, username, password, server string) error {
 		return err
 	}
 
-	createOrUpdate := client.CoreV1().Secrets(namespace).Update
-
+	var createOrUpdate func(*v1.Secret) (*v1.Secret, error)
 	if secret == nil {
 		secret = createSecret(name)
 		createOrUpdate = client.CoreV1().Secrets(namespace).Create
+	} else {
+		createOrUpdate = client.CoreV1().Secrets(namespace).Update
 	}
 
 	configJson, err := getConfig(username, password, server)
