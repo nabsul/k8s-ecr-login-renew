@@ -6,12 +6,14 @@ import (
 	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"os"
+	"strings"
 	"time"
 )
 
 const (
 	envVarAwsSecret       = "DOCKER_SECRET_NAME"
 	envVarTargetNamespace = "TARGET_NAMESPACE"
+	envVarRegistries      = "DOCKER_REGISTRIES"
 )
 
 func checkErr(err error) {
@@ -38,6 +40,12 @@ func main() {
 	checkErr(err)
 	fmt.Println("Success.")
 
+	servers := []string{server}
+	registries := strings.Split(os.Getenv(envVarRegistries), ",")
+	for _, registry := range registries {
+		servers = append(servers, registry)
+	}
+
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
 	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
@@ -45,7 +53,7 @@ func main() {
 	failed := false
 	for _, ns := range namespaces {
 		fmt.Printf("Updating secret in namespace [%s]... ", ns)
-		err = k8s.UpdatePassword(ns, name, username, password, server)
+		err = k8s.UpdatePassword(ns, name, username, password, servers)
 		if nil != err {
 			fmt.Printf("failed: %s\n", err)
 			failed = true
