@@ -24,7 +24,8 @@ jobs:
     - name: Push image
       run: |
         VERSION=$(date +%s)
-        IMAGE=docker.pkg.github.com/${GITHUB_REPOSITORY}/k8s-ecr-login-renew:$VERSION
+        REPOSITORY=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+        IMAGE=docker.pkg.github.com/${REPOSITORY}/k8s-ecr-login-renew:$VERSION
         [ "$VERSION" == "master" ] && VERSION=latest
         docker tag k8s-ecr-login-renew $IMAGE
         docker push $IMAGE
