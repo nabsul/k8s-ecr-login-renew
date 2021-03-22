@@ -13,6 +13,17 @@ import (
 	"strings"
 )
 
+type Config struct {
+	Auths map[string]*Auth `json:"auths"`
+}
+
+type Auth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+	Auth     string `json:"auth"`
+}
+
 const defaultEmail = "awsregrenew@demo.test"
 
 func GetClient() (*kubernetes.Clientset, error) {
@@ -50,16 +61,17 @@ func getSecret(client *kubernetes.Clientset, name, namespace string) (*v1.Secret
 	return secret, nil
 }
 
-func getConfig(username, password, server string) ([]byte, error) {
-	config := map[string]map[string]map[string]string{
-		"auths": {
-			server: {
-				"username": username,
-				"password": password,
-				"email":    defaultEmail,
-				"auth":     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
-			},
-		},
+func getConfig(username, password string, servers []string) ([]byte, error) {
+	auth := &Auth{
+		Username: username,
+		Password: password,
+		Email:    defaultEmail,
+		Auth:     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
+	}
+
+	config := Config{Auths: make(map[string]*Auth, len(servers))}
+	for _, server := range servers {
+		config.Auths[server] = auth
 	}
 
 	configJson, err := json.Marshal(config)
@@ -77,7 +89,7 @@ func createSecret(name string) *v1.Secret {
 	return &secret
 }
 
-func UpdatePassword(namespace, name, username, password, server string) error {
+func UpdatePassword(namespace, name, username, password string, servers []string) error {
 	client, err := GetClient()
 	if nil != err {
 		return err
@@ -88,7 +100,7 @@ func UpdatePassword(namespace, name, username, password, server string) error {
 		return err
 	}
 
-	configJson, err := getConfig(username, password, server)
+	configJson, err := getConfig(username, password, servers)
 	if nil != err {
 		return err
 	}
