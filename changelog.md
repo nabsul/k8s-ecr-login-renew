@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5 (2021-04-03)
+
+- Handle the case of multiple registries in AWS (contributed by [Veraticus](https://github.com/Veraticus) in [pull request 18](https://github.com/nabsul/k8s-ecr-login-renew/pull/18))
+
 ## v1.4 (2021-02-13)
 
 - Update Docker secrets instead of delete+create (suggested by [xavidop](https://github.com/xavidop) in [issue 15](https://github.com/nabsul/k8s-ecr-login-renew/issues/15))

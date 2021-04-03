@@ -3,6 +3,7 @@ package k8s
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
 	"k8s.io/api/core/v1"
 	. "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -61,17 +62,16 @@ func getSecret(client *kubernetes.Clientset, name, namespace string) (*v1.Secret
 	return secret, nil
 }
 
-func getConfig(username, password string, servers []string) ([]byte, error) {
-	auth := &Auth{
-		Username: username,
-		Password: password,
-		Email:    defaultEmail,
-		Auth:     base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
-	}
+func getConfig(credentials []aws.EcrCredentials) ([]byte, error) {
+	config := Config{Auths: make(map[string]*Auth, len(credentials))}
 
-	config := Config{Auths: make(map[string]*Auth, len(servers))}
-	for _, server := range servers {
-		config.Auths[server] = auth
+	for _, cred := range credentials {
+		config.Auths[cred.Server] = &Auth{
+			Username: cred.Username,
+			Password: cred.Password,
+			Email:    defaultEmail,
+			Auth:     base64.StdEncoding.EncodeToString([]byte(cred.Username + ":" + cred.Password)),
+		}
 	}
 
 	configJson, err := json.Marshal(config)
@@ -89,7 +89,7 @@ func createSecret(name string) *v1.Secret {
 	return &secret
 }
 
-func UpdatePassword(namespace, name, username, password string, servers []string) error {
+func UpdatePassword(namespace, name string, credentials []aws.EcrCredentials) error {
 	client, err := GetClient()
 	if nil != err {
 		return err
@@ -100,7 +100,7 @@ func UpdatePassword(namespace, name, username, password string, servers []string
 		return err
 	}
 
-	configJson, err := getConfig(username, password, servers)
+	configJson, err := getConfig(credentials)
 	if nil != err {
 		return err
 	}
