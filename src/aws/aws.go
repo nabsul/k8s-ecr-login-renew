@@ -7,20 +7,33 @@ import (
 	"strings"
 )
 
-func GetUserAndPass() (username, password, server string, err error) {
+type EcrCredentials struct {
+	Username, Password, Server string
+}
+
+func GetUserAndPass() ([]EcrCredentials, error) {
 	svc := ecr.New(session.Must(session.NewSession()))
 	token, err := svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
 	if nil != err {
-		return "", "", "", err
+		return nil, err
 	}
 
-	auth := token.AuthorizationData[0]
+	result := make([]EcrCredentials, len(token.AuthorizationData))
+	for _, auth := range token.AuthorizationData {
+		decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
+		if nil != err {
+			return nil, err
+		}
 
-	decode, err := base64.StdEncoding.DecodeString(*auth.AuthorizationToken)
-	if nil != err {
-		return "", "", "", err
+		parts := strings.Split(string(decode), ":")
+		cred := EcrCredentials{
+			Username: parts[0],
+			Password: parts[1],
+			Server: *auth.ProxyEndpoint,
+		}
+
+		result = append(result, cred)
 	}
 
-	parts := strings.Split(string(decode), ":")
-	return parts[0], parts[1], *auth.ProxyEndpoint, nil
+	return result, nil
 }
