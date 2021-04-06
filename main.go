@@ -6,12 +6,14 @@ import (
 	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
 	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
 	"os"
+	"strings"
 	"time"
 )
 
 const (
 	envVarAwsSecret       = "DOCKER_SECRET_NAME"
 	envVarTargetNamespace = "TARGET_NAMESPACE"
+	envVarRegistries      = "DOCKER_REGISTRIES"
 )
 
 func checkErr(err error) {
@@ -34,9 +36,11 @@ func main() {
 	}
 
 	fmt.Print("Fetching auth data from AWS... ")
-	credentials, err := aws.GetUserAndPass()
+	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
-	fmt.Printf("Successfully fetched %d docker credentials\n", len(credentials))
+
+	servers := strings.Split(os.Getenv(envVarRegistries), ",")
+	servers = append(servers, credentials.Server)
 
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
@@ -45,7 +49,7 @@ func main() {
 	failed := false
 	for _, ns := range namespaces {
 		fmt.Printf("Updating secret in namespace [%s]... ", ns)
-		err = k8s.UpdatePassword(ns, name, credentials)
+		err = k8s.UpdatePassword(ns, name, credentials.Username, credentials.Password, servers)
 		if nil != err {
 			fmt.Printf("failed: %s\n", err)
 			failed = true
