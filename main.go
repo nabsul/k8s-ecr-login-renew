@@ -35,12 +35,17 @@ func main() {
 		namespaceList = "default"
 	}
 
-	fmt.Print("Fetching auth data from AWS... ")
+	fmt.Println("Fetching auth data from AWS... ")
 	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
 
-	servers := strings.Split(os.Getenv(envVarRegistries), ",")
-	servers = append(servers, credentials.Server)
+	addedServers := strings.Split(os.Getenv(envVarRegistries), ",")
+	servers := make([]string, 1 + len(addedServers))
+	servers[0] = credentials.Server
+	for i := 0; i < len(addedServers); i++ {
+		servers[i+1] = addedServers[i]
+	}
+	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
 
 	namespaces, err := k8s.GetNamespaces(namespaceList)
 	checkErr(err)
