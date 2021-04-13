@@ -39,7 +39,12 @@ func main() {
 	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
 
-	addedServers := strings.Split(os.Getenv(envVarRegistries), ",")
+	var addedServers []string
+	addedServersSetting := os.Getenv(envVarRegistries)
+	if addedServersSetting != "" {
+		addedServers = strings.Split(addedServersSetting, ",")
+	}
+
 	servers := make([]string, 1 + len(addedServers))
 	servers[0] = credentials.Server
 	for i := 0; i < len(addedServers); i++ {
