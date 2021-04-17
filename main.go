@@ -39,17 +39,7 @@ func main() {
 	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
 
-	var addedServers []string
-	addedServersSetting := os.Getenv(envVarRegistries)
-	if addedServersSetting != "" {
-		addedServers = strings.Split(addedServersSetting, ",")
-	}
-
-	servers := make([]string, 1 + len(addedServers))
-	servers[0] = credentials.Server
-	for i := 0; i < len(addedServers); i++ {
-		servers[i+1] = addedServers[i]
-	}
+	servers := getServerList(credentials.Server)
 	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
 
 	namespaces, err := k8s.GetNamespaces(namespaceList)
@@ -73,4 +63,14 @@ func main() {
 	}
 
 	fmt.Println("Job complete.")
+}
+
+func getServerList(defaultServer string) []string {
+	addedServersSetting := os.Getenv(envVarRegistries)
+
+	if addedServersSetting == "" {
+		return []string{defaultServer}
+	}
+
+	return strings.Split(addedServersSetting, ",")
 }
