@@ -12,8 +12,23 @@ will always be able to pull Docker images from ECR.
 
 The tool is build for standard 64-bit Linux and ARM (Raspberry Pi). The latest images are:
 
-- `nabsul/k8s-ecr-login-renew:v1.4`
-- `nabsul/k8s-ecr-login-renew:arm32v7-v1.4`
+- `nabsul/k8s-ecr-login-renew:v1.5`
+- `nabsul/k8s-ecr-login-renew:arm32v7-v1.5`
+
+## Environment Variables
+
+The tool is mainly configured through environment variables. These are:
+
+- AWS_ACCESS_KEY_ID (required): AWS access key used to create the Docker credentials.
+- AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
+- AWS_REGION (required): The AWS region where your ECR instance is created.
+- DOCKER_SECRET_NAME (required): The name of the Kubernetes secret where the Docker credentials are stored.
+- TARGET_NAMESPACE (optional): Comma-separated list of namespaces. 
+  A Docker secret is created in each of these. 
+  If this environment variable is not set, a value of `default` is assumed.
+- DOCKER_REGISTRIES (optional): Comma-separated list of registry URL. 
+  If none is provided, the default URL returned from AWS is used.
+  - Example: `DOCKER_REGISTRIES=https://321321.dkr.ecr.us-west-2.amazonaws.com,https://123123.dkr.ecr.us-east-2.amazonaws.com`
 
 ## Running the Example
 
@@ -24,14 +39,15 @@ but you'll need to fill in you registry's URL before using `example/pod.yml`.
 ### Create an ECR Instance
 
 I'm not going to describe this in too much details because
-there is [plenty of documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html) 
+there is 
+[plenty of documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html) 
 that describes how to do this.
-But here are a few pointers:
+Here are a few pointers:
 
 - Create an AWS ECR instance
 - Create a repository inside that instance
 
-### Push a Test Image to 
+### Push a Test Image to ECR 
 
 To complete the final steps of these instructions, you'll need to create and upload an image to ECR.
 As with the previous section, there's plenty of good documentation out there.
