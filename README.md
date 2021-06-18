@@ -120,14 +120,14 @@ Once the job completes, you should notice that the target docker secrets object 
 The job can also be manually triggered with the following command:
 
 ```shell script
-kubectl create job --from=cronjob/ecr-renew-demo ecr-renew-demo-manual-1
+kubectl create job --from=cronjob/cron-ecr-renew-demo cron-ecr-renew-demo-manual-1
 ```
 
 You can view the status and logs of the job with the following commands:
 
 ```shell script
-kubectl describe job ecr-renew-demo-manual-1
-kubectl logs job/ecr-renew-demo-manual-1
+kubectl describe job cron-ecr-renew-demo-manual-1
+kubectl logs job/cron-ecr-renew-demo-manual-1
 ```
 
 ### Deploy the Test Image
