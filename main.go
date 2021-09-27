@@ -30,7 +30,7 @@ func main() {
 		panic(fmt.Sprintf("Environment variable %s is required", name))
 	}
 
-	namespaceList := os.Getenv(envVarTargetNamespace)
+	namespaceList := formatNamespaceList(os.Getenv(envVarTargetNamespace))
 	if namespaceList == "" {
 		namespaceList = "default"
 	}
@@ -73,4 +73,14 @@ func getServerList(defaultServer string) []string {
 	}
 
 	return strings.Split(addedServersSetting, ",")
+}
+
+func formatNamespaceList(namespaceList string) string{
+	formattedNamespaceList := namespaceList
+
+	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, " ", "")
+	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\n", ",")
+	formattedNamespaceList = strings.TrimSuffix(formattedNamespaceList, ",")
+
+	return formattedNamespaceList
 }
