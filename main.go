@@ -81,6 +81,7 @@ func formatNamespaceList(namespaceList string) string{
 	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, " ", "")
 	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\r", "")
 	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\t", "")
+	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\v", "")
 	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\n", ",")
 	formattedNamespaceList = strings.TrimSuffix(formattedNamespaceList, ",")
 
