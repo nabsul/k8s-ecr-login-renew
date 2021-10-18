@@ -10,10 +10,18 @@ will always be able to pull Docker images from ECR.
 
 ## Docker Images
 
-The tool is build for standard 64-bit Linux and ARM (Raspberry Pi). The latest images are:
+The tool is built for and supports the following Architectures:
+- `linux/amd64`
+- `linux/arm64`
+- `linux/arm/v7`
 
+If there is an achitecture that isnt supported you can request it [Here](https://github.com/nabsul/k8s-ecr-login-renew/issues).
+
+The latest image can be pulled by any supported Architecture:
+- `nabsul/k8s-ecr-login-renew:latest`
+
+Or by tag:
 - `nabsul/k8s-ecr-login-renew:v1.5`
-- `nabsul/k8s-ecr-login-renew:arm32v7-v1.5`
 
 ## Environment Variables
 
