@@ -1,10 +1,10 @@
-FROM golang:alpine as build
-
-WORKDIR /app
-COPY . .
-RUN go build -o k8s-ecr-login-renew .
+# syntax=docker/dockerfile:1
+FROM golang:alpine AS build
+WORKDIR /go/src/app
+ADD . /go/src/app
+RUN go get -d -v ./...
+RUN go build -o /go/bin/app
 
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-COPY --from=build /app/k8s-ecr-login-renew .
-CMD ["./k8s-ecr-login-renew"]
+COPY --from=build /go/bin/app /k8s-ecr-login-renew
+CMD ["/k8s-ecr-login-renew"]
