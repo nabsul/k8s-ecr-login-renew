@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.6 (2021-10-31) - Spooky Separators!
+
+- Support multi-line and whitespace in Namespace list
+  - Contributed by [Jeremy Ruffell](https://github.com/jeremyruffell) in [pull request 24](https://github.com/nabsul/k8s-ecr-login-renew/pull/24)
+- CI and Docker build improvements:
+  - Fix broken GitHub CI actions
+  - Combine x64 and ARM builds into one using `buildx`
+  - Reduce size of container image
+  - Contributed by [Jeremy Ruffell](https://github.com/jeremyruffell) in [pull request 25](https://github.com/nabsul/k8s-ecr-login-renew/pull/24)
+- Implemented in [pull request 26](https://github.com/nabsul/k8s-ecr-login-renew/pull/26) 
+
 ## v1.5 (2021-04-03)
 
 - Allow custom/multiple registry URLs with a new environment variable: `DOCKER_REGISTRIES`

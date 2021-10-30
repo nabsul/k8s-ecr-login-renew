@@ -1,6 +1,7 @@
 # Contributors
 
-- [nabsul](https://github.com/nabsul): v1.0 - v1.5
+- [nabsul](https://github.com/nabsul): v1.0 - v1.6
+- [Jeremy Ruffell](https://github.com/jeremyruffell): v1.6
 - [Veraticus](https://github.com/Veraticus): v1.5
 - [xavidop](https://github.com/xavidop): v1.4
 - [kuskoman](https://github.com/kuskoman): v1.3
