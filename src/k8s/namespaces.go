@@ -7,6 +7,12 @@ import (
 )
 
 func GetNamespaces(envVar string) ([]string, error) {
+	if envVar == "" {
+		envVar = "default"
+	}
+
+	envVar = formatNamespaceList(envVar)
+
 	list := strings.Split(envVar, ",")
 	single := make([]string, 0, len(list))
 	regex := make([]*Regexp, 0, len(list))
@@ -29,6 +35,23 @@ func GetNamespaces(envVar string) ([]string, error) {
 	}
 
 	return unique(append(single, matchedNamespaces...)), nil
+}
+
+var namespaceWhitespace = []string{" ", "\r", "\t", "\v"}
+var namespaceSeparators = []string{"\n", ";"}
+
+func formatNamespaceList(namespaceList string) string{
+	formattedNamespaceList := namespaceList
+
+	for _, c := range namespaceWhitespace {
+		formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, c, "")
+	}
+
+	for _, c := range namespaceSeparators {
+		formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, c, ",")
+	}
+
+	return formattedNamespaceList
 }
 
 func unique(values []string) []string {
