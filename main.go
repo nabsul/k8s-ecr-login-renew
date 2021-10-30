@@ -30,11 +30,6 @@ func main() {
 		panic(fmt.Sprintf("Environment variable %s is required", name))
 	}
 
-	namespaceList := formatNamespaceList(os.Getenv(envVarTargetNamespace))
-	if namespaceList == "" {
-		namespaceList = "default"
-	}
-
 	fmt.Println("Fetching auth data from AWS... ")
 	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
@@ -42,7 +37,7 @@ func main() {
 	servers := getServerList(credentials.Server)
 	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
 
-	namespaces, err := k8s.GetNamespaces(namespaceList)
+	namespaces, err := k8s.GetNamespaces(os.Getenv(envVarTargetNamespace))
 	checkErr(err)
 	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
 
@@ -73,17 +68,4 @@ func getServerList(defaultServer string) []string {
 	}
 
 	return strings.Split(addedServersSetting, ",")
-}
-
-func formatNamespaceList(namespaceList string) string{
-	formattedNamespaceList := namespaceList
-
-	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, " ", "")
-	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\r", "")
-	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\t", "")
-	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\v", "")
-	formattedNamespaceList = strings.ReplaceAll(formattedNamespaceList, "\n", ",")
-	formattedNamespaceList = strings.TrimSuffix(formattedNamespaceList, ",")
-
-	return formattedNamespaceList
 }
