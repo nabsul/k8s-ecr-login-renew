@@ -19,11 +19,11 @@ type config struct {
 	targetNamespace   string
 }
 
-var spaces = map[string]string {
-	"_": ConstSvcNamespace,
-	"1": "test-ecr-renew-ns1",
-	"2": "test-ecr-renew-ns2",
-	"3": "test-ecr-renew-ns3",
+var spaces = map[string]string{
+	"_":  ConstSvcNamespace,
+	"1":  "test-ecr-renew-ns1",
+	"2":  "test-ecr-renew-ns2",
+	"3":  "test-ecr-renew-ns3",
 	"11": "test-ecr-renew-ns11",
 	"12": "test-ecr-renew-ns12",
 	"13": "test-ecr-renew-ns13",

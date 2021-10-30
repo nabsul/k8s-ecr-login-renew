@@ -40,7 +40,7 @@ func GetNamespaces(envVar string) ([]string, error) {
 var namespaceWhitespace = []string{" ", "\r", "\t", "\v"}
 var namespaceSeparators = []string{"\n", ";"}
 
-func formatNamespaceList(namespaceList string) string{
+func formatNamespaceList(namespaceList string) string {
 	formattedNamespaceList := namespaceList
 
 	for _, c := range namespaceWhitespace {
