@@ -14,7 +14,7 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Namespace: ConstSvcNamespace,
-			Name: ConstSvcName,
+			Name:      ConstSvcName,
 		},
 	}
 
@@ -68,13 +68,13 @@ func createNamespaceRole() rbacV1.ClusterRole {
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Namespace: ConstSvcNamespace,
-			Name: ConstNamespaceRoleName,
+			Name:      ConstNamespaceRoleName,
 		},
 		Rules: []rbacV1.PolicyRule{
 			{
 				APIGroups: []string{""},
 				Resources: []string{"namespaces"},
-				Verbs: []string{"list"},
+				Verbs:     []string{"list"},
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func createNamespaceRoleBinding() rbacV1.ClusterRoleBinding {
 		Subjects: []rbacV1.Subject{
 			{
 				Namespace: ConstSvcNamespace,
-				Name: ConstSvcName,
+				Name:      ConstSvcName,
 			},
 		},
 	}
@@ -130,22 +130,22 @@ func createRole(ns string) *rbacV1.Role {
 
 func createRoleBinding(role *rbacV1.Role, service *coreV1.ServiceAccount) *rbacV1.RoleBinding {
 	return &rbacV1.RoleBinding{
-		TypeMeta:   metaV1.TypeMeta{
+		TypeMeta: metaV1.TypeMeta{
 			Kind: "RoleBinding",
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Namespace: role.Namespace,
-			Name: ConstRoleBindingName,
+			Name:      ConstRoleBindingName,
 		},
-		RoleRef:    rbacV1.RoleRef{
+		RoleRef: rbacV1.RoleRef{
 			Kind: role.Kind,
 			Name: role.Name,
 		},
-		Subjects:   []rbacV1.Subject{
+		Subjects: []rbacV1.Subject{
 			{
-				Kind: "ServiceAccount",
+				Kind:      "ServiceAccount",
 				Namespace: service.Namespace,
-				Name: service.Name,
+				Name:      service.Name,
 			},
 		},
 	}

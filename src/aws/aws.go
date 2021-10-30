@@ -31,7 +31,7 @@ func GetDockerCredentials() (*DockerCredentials, error) {
 	cred := DockerCredentials{
 		Username: parts[0],
 		Password: parts[1],
-		Server: *auth.ProxyEndpoint,
+		Server:   *auth.ProxyEndpoint,
 	}
 
 	return &cred, nil

@@ -10,7 +10,7 @@ import (
 )
 
 func runTest(cfg config) {
-	cfg.t.Cleanup(func(){cleanup(cfg)})
+	cfg.t.Cleanup(func() { cleanup(cfg) })
 
 	t := cfg.t
 	c, err := k8s.GetClient()
@@ -96,7 +96,7 @@ func runTest(cfg config) {
 			printError(t, errors.New(msg))
 		}
 	}
-	 */
+	*/
 
 	if t.Failed() {
 		printError(t, errors.New(logs))

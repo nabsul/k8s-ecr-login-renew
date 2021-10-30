@@ -72,7 +72,7 @@ func createJob(cron v1beta1.CronJob) batchV1.Job {
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Namespace: ConstSvcNamespace,
-			Name: ConstJobName,
+			Name:      ConstJobName,
 		},
 		Spec: cron.Spec.JobTemplate.Spec,
 	}
@@ -94,11 +94,11 @@ func createCronJob(targetNamespace, awsRegion, awsId, awsSecret string) v1beta1.
 		},
 		Spec: v1beta1.CronJobSpec{
 			ConcurrencyPolicy: "Forbid",
-			Schedule: "0 0 1 1 1", // set to a value in the past so it never triggers
+			Schedule:          "0 0 1 1 1", // set to a value in the past so it never triggers
 			JobTemplate: v1beta1.JobTemplateSpec{
 				Spec: batchV1.JobSpec{
-					Parallelism: &one,
-					Completions: &one,
+					Parallelism:  &one,
+					Completions:  &one,
 					BackoffLimit: &one,
 					Template: coreV1.PodTemplateSpec{
 						Spec: getPodSpec(targetNamespace, awsRegion, awsId, awsSecret),
@@ -115,8 +115,8 @@ func getPodSpec(targetNamespace, awsRegion, awsId, awsSecret string) coreV1.PodS
 		ServiceAccountName: ConstSvcName,
 		Containers: []coreV1.Container{
 			{
-				Name:  "ecr-renew",
-				Image: "test-ecr-renew",
+				Name:            "ecr-renew",
+				Image:           "test-ecr-renew",
 				ImagePullPolicy: "IfNotPresent",
 				Env: []coreV1.EnvVar{
 					{Name: "DOCKER_SECRET_NAME", Value: ConstDockerSecretName},
