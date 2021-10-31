@@ -15,13 +15,13 @@ The tool is built for and supports the following Architectures:
 - `linux/arm64`
 - `linux/arm/v7`
 
-If there is an achitecture that isnt supported you can request it [Here](https://github.com/nabsul/k8s-ecr-login-renew/issues).
+If there is an architecture that isn't supported you can request it [Here](https://github.com/nabsul/k8s-ecr-login-renew/issues).
 
 The latest image can be pulled by any supported Architecture:
 - `nabsul/k8s-ecr-login-renew:latest`
 
 Or by tag:
-- `nabsul/k8s-ecr-login-renew:v1.5`
+- `nabsul/k8s-ecr-login-renew:v1.6`
 
 ## Environment Variables
 
@@ -31,7 +31,7 @@ The tool is mainly configured through environment variables. These are:
 - AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
 - AWS_REGION (required): The AWS region where your ECR instance is created.
 - DOCKER_SECRET_NAME (required): The name of the Kubernetes secret where the Docker credentials are stored.
-- TARGET_NAMESPACE (optional): Comma-separated list of namespaces. 
+- TARGET_NAMESPACE (optional): Comma, semicolon or newline separated list of namespaces. 
   A Docker secret is created in each of these. 
   If this environment variable is not set, a value of `default` is assumed.
 - DOCKER_REGISTRIES (optional): Comma-separated list of registry URL. 
@@ -230,5 +230,5 @@ I couldn't figure out how to get Docker Desktop to enforce RBAC permissions.
 ## Cross-Architecture Build
 
 ```shell
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --push -t nabsul/k8s-ecr-login-renew:v1.6-rc1 .
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t [image_name] .
 ```
