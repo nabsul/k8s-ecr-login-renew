@@ -27,7 +27,7 @@ func main() {
 
 	name := os.Getenv(envVarAwsSecret)
 	if name == "" {
-		panic(fmt.Sprintf("Environment variable %s is required", name))
+		panic(fmt.Sprintf("Environment variable %s is required", envVarAwsSecret))
 	}
 
 	fmt.Println("Fetching auth data from AWS... ")
