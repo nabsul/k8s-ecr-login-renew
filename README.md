@@ -230,3 +230,9 @@ go test -v ./test/...
 One of the biggest things I am currently not testing are permissions.
 This is mostly due to laziness on my part:
 I couldn't figure out how to get Docker Desktop to enforce RBAC permissions. 
+
+## Cross-Architecture Build
+
+```shell
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --push -t nabsul/k8s-ecr-login-renew:v1.6-rc1 .
+```
