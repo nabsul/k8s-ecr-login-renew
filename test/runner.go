@@ -68,7 +68,7 @@ func runTest(cfg config) {
 
 	t.Log("checking job logs")
 	if !strings.Contains(logs, "Fetching auth data from AWS... Success.") {
-		printError(t, errors.New(fmt.Sprintf("no AWS success message found")))
+		printError(t, errors.New(fmt.Sprintf("no AWS success message found in:\n%s", logs)))
 	}
 
 	expectedUpdates := len(cfg.successNamespaces)
