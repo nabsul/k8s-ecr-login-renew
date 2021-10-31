@@ -212,11 +212,7 @@ Running these tests locally has the following prerequisites:
 - Create a secret with the needed AWS parameters:
 
 ```shell script
-kubectl create secret test-ecr-renew-aws-settings \
-  --from-literal=REGION=[AWS_REGION] \
-  --from-literal=ID=[AWS_KEY_ID] \
-  --from-literal=SECRET=[AWS_SECRET]
-  --from-literal=IMAGE=[TEST_IMAGE]
+kubectl create secret generic test-ecr-renew-aws --from-literal=REGION=[AWS_REGION] --from-literal=ID=[AWS_ID] --from-literal=SECRET=[AWS_SECRET] --from-literal=IMAGE=test-ecr-renew
 ```
 
 You can then run the tests by typing:

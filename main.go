@@ -30,9 +30,10 @@ func main() {
 		panic(fmt.Sprintf("Environment variable %s is required", envVarAwsSecret))
 	}
 
-	fmt.Println("Fetching auth data from AWS... ")
+	fmt.Print("Fetching auth data from AWS... ")
 	credentials, err := aws.GetDockerCredentials()
 	checkErr(err)
+	fmt.Println("Success.")
 
 	servers := getServerList(credentials.Server)
 	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
