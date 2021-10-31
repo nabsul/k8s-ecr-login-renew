@@ -9,6 +9,7 @@
   - Combine amd64 and ARM builds into one using `buildx`
   - Reduce size of container image
   - Contributed by [Jeremy Ruffell](https://github.com/jeremyruffell) in [pull request 25](https://github.com/nabsul/k8s-ecr-login-renew/pull/24)
+- Minor bug fix in an error message
 - Implemented in [pull request 26](https://github.com/nabsul/k8s-ecr-login-renew/pull/26) 
 
 ## v1.5 (2021-04-03)
