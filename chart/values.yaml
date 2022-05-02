@@ -1,9 +1,11 @@
 secretName: docker-ecr
+# overrideNamespace:
 
 ecr:
   region: ""
   accessKeyId: ""
   secretAccessKey: ""
+# dockerRegistries: one,two
 
 image:
   repository: nabsul/k8s-ecr-login-renew

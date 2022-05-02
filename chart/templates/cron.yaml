@@ -43,3 +43,20 @@ spec:
                   secretKeyRef:
                     name: {{ include "k8s-ecr-login-renew.secret" . }}
                     key: DOCKER_SECRET_NAME
+{{- if .Values.overrideNamespace }}
+              - name: TARGET_NAMESPACE
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "k8s-ecr-login-renew.secret" . }}
+                    key: TARGET_NAMESPACE
+{{- else }}
+              - name: TARGET_NAMESPACE
+                value: {{ .Release.Namespace }}
+{{- end }}
+{{- if .Values.ecr.dockerRegistries }}
+              - name: DOCKER_REGISTRIES
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "k8s-ecr-login-renew.secret" . }}
+                    key: DOCKER_REGISTRIES
+{{- end }}
