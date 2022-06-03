@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	coreV1 "k8s.io/api/core/v1"
@@ -50,7 +51,7 @@ func getClientConfig() (*rest.Config, error) {
 }
 
 func getSecret(client *kubernetes.Clientset, name, namespace string) (*coreV1.Secret, error) {
-	secret, err := client.CoreV1().Secrets(namespace).Get(name, metaV1.GetOptions{})
+	secret, err := client.CoreV1().Secrets(namespace).Get(context.TODO(), name, metaV1.GetOptions{})
 	if nil != err {
 		if strings.Contains(err.Error(), "not found") {
 			return nil, nil
@@ -107,25 +108,25 @@ func UpdatePassword(namespace, name, username, password string, servers []string
 	if secret == nil {
 		secret = createSecret(name)
 		secret.Data[coreV1.DockerConfigJsonKey] = configJson
-		_, err = client.CoreV1().Secrets(namespace).Create(secret)
+		_, err = client.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metaV1.CreateOptions{})
 		return err
 	}
 
 	secret.Data[coreV1.DockerConfigJsonKey] = configJson
-	_, err = client.CoreV1().Secrets(namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(namespace).Update(context.TODO(), secret, metaV1.UpdateOptions{})
 
 	if err == nil {
 		return nil
 	}
 
 	// fall back to delete+create in case permissions are not updated
-	err = client.CoreV1().Secrets(namespace).Delete(name, &metaV1.DeleteOptions{})
+	err = client.CoreV1().Secrets(namespace).Delete(context.TODO(), name, metaV1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
 
 	secret = createSecret(name)
 	secret.Data[coreV1.DockerConfigJsonKey] = configJson
-	_, err = client.CoreV1().Secrets(namespace).Create(secret)
+	_, err = client.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metaV1.CreateOptions{})
 	return err
 }

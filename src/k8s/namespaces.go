@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"regexp"
 	"strings"
@@ -126,7 +127,7 @@ func getAllNamespaces() ([]string, error) {
 
 	for first || opts.Continue != "" {
 		first = false
-		res, err := client.CoreV1().Namespaces().List(opts)
+		res, err := client.CoreV1().Namespaces().List(context.TODO(), opts)
 		if nil != err {
 			return nil, err
 		}
