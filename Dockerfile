@@ -6,5 +6,7 @@ RUN go get -d -v ./...
 RUN go build -o /go/bin/app
 
 FROM alpine:3.16
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 COPY --from=build /go/bin/app /k8s-ecr-login-renew
 CMD ["/k8s-ecr-login-renew"]
