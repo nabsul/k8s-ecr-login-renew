@@ -2,7 +2,7 @@ package k8s
 
 import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	. "regexp"
+	"regexp"
 	"strings"
 )
 
@@ -15,7 +15,7 @@ func GetNamespaces(envVar string) ([]string, error) {
 
 	list := strings.Split(envVar, ",")
 	single := make([]string, 0, len(list))
-	regex := make([]*Regexp, 0, len(list))
+	regex := make([]*regexp.Regexp, 0, len(list))
 
 	for _, val := range list {
 		if hasWildCard(val) {
@@ -76,14 +76,14 @@ func hasWildCard(val string) bool {
 	return false
 }
 
-func getRegex(val string) (*Regexp, error) {
+func getRegex(val string) (*regexp.Regexp, error) {
 	regex := strings.Replace(val, "*", ".*", -1)
 	regex = strings.Replace(regex, "?", ".", -1)
 	regex = "^" + regex + "$"
-	return Compile(regex)
+	return regexp.Compile(regex)
 }
 
-func findNamespaces(regex []*Regexp) ([]string, error) {
+func findNamespaces(regex []*regexp.Regexp) ([]string, error) {
 	if len(regex) == 0 {
 		return nil, nil
 	}
@@ -103,7 +103,7 @@ func findNamespaces(regex []*Regexp) ([]string, error) {
 	return result, nil
 }
 
-func isAnyMatch(ns string, regexes []*Regexp) bool {
+func isAnyMatch(ns string, regexes []*regexp.Regexp) bool {
 	for _, r := range regexes {
 		if r.MatchString(ns) {
 			return true
