@@ -3,8 +3,8 @@ package k8s
 import (
 	"encoding/base64"
 	"encoding/json"
-	"k8s.io/api/core/v1"
-	. "k8s.io/apimachinery/pkg/apis/meta/v1"
+	coreV1 "k8s.io/api/core/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -49,8 +49,8 @@ func getClientConfig() (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", filepath.Join(u.HomeDir, ".kube", "config"))
 }
 
-func getSecret(client *kubernetes.Clientset, name, namespace string) (*v1.Secret, error) {
-	secret, err := client.CoreV1().Secrets(namespace).Get(name, GetOptions{})
+func getSecret(client *kubernetes.Clientset, name, namespace string) (*coreV1.Secret, error) {
+	secret, err := client.CoreV1().Secrets(namespace).Get(name, metaV1.GetOptions{})
 	if nil != err {
 		if strings.Contains(err.Error(), "not found") {
 			return nil, nil
@@ -80,10 +80,10 @@ func getConfig(username, password string, servers []string) ([]byte, error) {
 	return configJson, nil
 }
 
-func createSecret(name string) *v1.Secret {
-	secret := v1.Secret{}
+func createSecret(name string) *coreV1.Secret {
+	secret := coreV1.Secret{}
 	secret.Name = name
-	secret.Type = v1.SecretTypeDockerConfigJson
+	secret.Type = coreV1.SecretTypeDockerConfigJson
 	secret.Data = map[string][]byte{}
 	return &secret
 }
@@ -106,12 +106,12 @@ func UpdatePassword(namespace, name, username, password string, servers []string
 
 	if secret == nil {
 		secret = createSecret(name)
-		secret.Data[v1.DockerConfigJsonKey] = configJson
+		secret.Data[coreV1.DockerConfigJsonKey] = configJson
 		_, err = client.CoreV1().Secrets(namespace).Create(secret)
 		return err
 	}
 
-	secret.Data[v1.DockerConfigJsonKey] = configJson
+	secret.Data[coreV1.DockerConfigJsonKey] = configJson
 	_, err = client.CoreV1().Secrets(namespace).Update(secret)
 
 	if err == nil {
@@ -119,13 +119,13 @@ func UpdatePassword(namespace, name, username, password string, servers []string
 	}
 
 	// fall back to delete+create in case permissions are not updated
-	err = client.CoreV1().Secrets(namespace).Delete(name, &DeleteOptions{})
+	err = client.CoreV1().Secrets(namespace).Delete(name, &metaV1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
 
 	secret = createSecret(name)
-	secret.Data[v1.DockerConfigJsonKey] = configJson
+	secret.Data[coreV1.DockerConfigJsonKey] = configJson
 	_, err = client.CoreV1().Secrets(namespace).Create(secret)
 	return err
 }
