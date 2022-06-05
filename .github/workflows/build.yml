@@ -36,6 +36,7 @@ jobs:
             type=ref,event=pr
             type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}.{{minor}}.{{patch}}
             type=sha
 
       - name: Log in to the GHCR registry
