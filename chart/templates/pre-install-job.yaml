@@ -29,36 +29,19 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: AWS_ACCESS_KEY_ID
+                key: {{ .Values.ecr.auth.secretKeys.awsAccessKeyIdKey }}
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
                 name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: AWS_SECRET_ACCESS_KEY
+                key: {{ .Values.ecr.auth.secretKeys.awsSecretAccessKeyKey }}
           - name: AWS_REGION
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: AWS_REGION
+            value: {{ .Values.ecr.region }}
           - name: DOCKER_SECRET_NAME
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: DOCKER_SECRET_NAME
-{{- if .Values.overrideNamespace }}
+            value: {{ .Values.secretName }}
           - name: TARGET_NAMESPACE
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: TARGET_NAMESPACE
-{{- else }}
-          - name: TARGET_NAMESPACE
-            value: {{ .Release.Namespace }}
-{{- end }}
+            value: {{ include "k8s-ecr-login-renew.targetNamespace" . }}
 {{- if .Values.ecr.dockerRegistries }}
           - name: DOCKER_REGISTRIES
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "k8s-ecr-login-renew.secret" . }}
-                key: DOCKER_REGISTRIES
+            value: {{ .Values.ecr.dockerRegistries }}
 {{- end }}

@@ -27,5 +27,9 @@ Define resource names
 {{- end }}
 
 {{- define "k8s-ecr-login-renew.secret" }}
-{{- default (printf "%s-secret" .Release.Name) -}}
+{{- .Values.ecr.auth.existingSecret | default (printf "%s-secret" .Release.Name) -}}
+{{- end }}
+
+{{- define "k8s-ecr-login-renew.targetNamespace" }}
+{{- default .Release.Namespace .Values.overrideNamespace . -}}
 {{- end }}
