@@ -1,5 +1,6 @@
 secretName: docker-ecr
-# overrideNamespace: "*"
+# target Namespace defaults to release namespace if left unspecified
+# targetNamespace: "*"
 
 ecr:
   region: us-east-1

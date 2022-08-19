@@ -31,5 +31,5 @@ Define resource names
 {{- end }}
 
 {{- define "k8s-ecr-login-renew.targetNamespace" }}
-{{- default .Release.Namespace .Values.overrideNamespace . -}}
+{{- default .Release.Namespace .Values.targetNamespace -}}
 {{- end }}

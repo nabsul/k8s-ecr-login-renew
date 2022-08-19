@@ -108,15 +108,13 @@ Add the repository
 helm repo add nabsul https://nabsul.github.io/k8s-ecr-login-renew
 ```
 
-Provide environment variable via chart values
-
-
-Other variables
+Add either an existing secret
 
 ```yaml
 # see chart/values.yaml
 values:
-  overrideNamespaces: "staging,prefix-*"
+  secretName: aws-ecr-auth-secret
+  targetNamespace: "staging,prefix-*"
   ecr:
     region: eu-central-1
     auth:
@@ -126,11 +124,22 @@ values:
         awsSecretAccessKeyKey: aws-secret-access-key
 
 ```
+...or your AWS keys directly in values (see chart/values).
+
+Install the chart
 
 ```
 helm install \
   -f values.yaml
   k8s-ecr-login-renew nabsul/k8s-ecr-login-renew
+```
+
+Finally you can use the pull secrets by providing the secret ref in your chart values. Many charts require them to be passed in `imagePullSecrets`
+
+```
+helm install \
+  --set imagePullSecrets[0].name="aws-ecr-auth-secret" \
+  my-app-release-that-uses-ecr-image xxx
 ```
 
 ### Deploy the job to Kubernetes without Helm
