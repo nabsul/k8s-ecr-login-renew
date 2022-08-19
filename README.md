@@ -25,7 +25,7 @@ Or by tag:
 
 ## Environment Variables
 
-The tool is mainly configured through environment variables. These are:
+The tool is mainly configured through environment variables (and/or secrets in kubernetes). These are:
 
 - AWS_ACCESS_KEY_ID (required): AWS access key used to create the Docker credentials.
 - AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
@@ -79,27 +79,72 @@ Ideally you should set up a policy that:
 I find IAM to be rather tricky, but here are the steps that I followed:
 
 - Select "Add User", select the "Programmatic Access" option
-- Create a group for that user
-- Create a policy for that group with the following configuration:
-  - Service: Elastic Container Registry
-  - Access Level: List & Read
-  - Resources: Select the specific ECR instance that you'll be using
+- (Optionally) Create a group for that user
+- Authorize the group or user to pull images from ECR. Either
+  a. Use the existing AWS policy "AmazonEC2ContainerRegistryReadOnly"
+  b. or create a policy for that group or user with the following configuration:
+    - Service: Elastic Container Registry
+    - Access Level: List & Read
+    - Resources: Select the specific ECR instance that you'll be using
   
-Once that's created, you'll want to get the access key ID and secret for the next step.
+Once that's created, you'll want to get the Access Key ID and Secret access Key (AK/SK) of the user for the next step.
 
-### Deploy AWS Access Keys to Kubernetes
+### Deploy AWS AK and SK to Kubernetes as a secret
 
 You will then need to create a secret in Kubernetes with the IAM user's credentials.
 The secret can be created from the command line using `kubectl` as follows:
 
 ```shell script
 kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
-  --from-literal=REGION=[AWS_REGION] \
-  --from-literal=ID=[AWS_KEY_ID] \
-  --from-literal=SECRET=[AWS_SECRET]
+  --from-literal=aws-access-key-id=[AWS_KEY_ID] \
+  --from-literal=aws-secret-access-key=[AWS_SECRET]
 ```
 
-### Required Kubernetes Service Account
+### Deploy to Kubernetes with Helm 3
+
+Add the repository
+
+```
+helm repo add nabsul https://nabsul.github.io/k8s-ecr-login-renew
+```
+
+Add either an existing secret
+
+```yaml
+# see chart/values.yaml
+values:
+  secretName: aws-ecr-auth-secret
+  targetNamespace: "staging,prefix-*"
+  ecr:
+    region: eu-central-1
+    auth:
+      existingSecret: ecr-renew-cred-demo
+      secretKeys:
+        awsAccessKeyIdKey: aws-access-key-id
+        awsSecretAccessKeyKey: aws-secret-access-key
+
+```
+...or your AWS keys directly in values (see chart/values).
+
+Install the chart
+
+```
+helm install \
+  -f values.yaml
+  k8s-ecr-login-renew nabsul/k8s-ecr-login-renew
+```
+
+Finally you can use the pull secrets by providing the secret ref in your chart values. Many charts require them to be passed in `imagePullSecrets`
+
+```
+helm install \
+  --set imagePullSecrets[0].name="aws-ecr-auth-secret" \
+  my-app-release-that-uses-ecr-image xxx
+```
+
+### Deploy the job to Kubernetes without Helm
+
+#### Required Kubernetes Service Account
 
 You will need to setup a service account with permissions to create/delete/get the resource docker secret.
 Ideally, you should give this service account the minimal amount of permissions needed to do its job.
@@ -110,7 +155,7 @@ You can use this apply this configuration directly as follows:
 kubectl apply -f example/service-account.yml
 ```
 
-### Deploy the cron job
+#### Deploy the cron job
 
 You'll need to 
 Deploy the cron job using the example yaml file in `example/deploy.yml`:
