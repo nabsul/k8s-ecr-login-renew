@@ -42,7 +42,7 @@ The tool is mainly configured through environment variables. These are:
 
 The following sections describe step-by-step how to set the cron job up and test it.
 You should be able to use the `example/service-account.yml` and `example/deploy.yml` files as-is for testing purposes,
-but you'll need to fill in you registry's URL before using `example/pod.yml`.
+but you'll need to fill in your registry's URL before using `example/pod.yml`.
 
 ### Create an ECR Instance
 
