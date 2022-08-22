@@ -149,7 +149,7 @@ helm install \
   my-app-release-that-uses-ecr-image xxx
 ```
 
-#### Deploy the job to Kubernetes with plain YAML
+#### Deploy to Kubernetes with plain YAML
 
 ##### Required Kubernetes Service Account
 
