@@ -25,7 +25,7 @@ Or by tag:
 
 ## Environment Variables
 
-The tool is mainly configured through environment variables (and/or secrets in kubernetes). These are:
+The tool is configured using the following environment variables:
 
 - AWS_ACCESS_KEY_ID (required): AWS access key used to create the Docker credentials.
 - AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
@@ -42,7 +42,7 @@ The tool is mainly configured through environment variables (and/or secrets in k
 
 The following sections describe step-by-step how to set the cron job up and test it.
 You should be able to use the `example/service-account.yml` and `example/deploy.yml` files as-is for testing purposes,
-but you'll need to fill in you registry's URL before using `example/pod.yml`.
+but you'll need to fill in your registry's URL before using `example/pod.yml`.
 
 ### Create an ECR Instance
 
@@ -87,7 +87,7 @@ I find IAM to be rather tricky, but here are the steps that I followed:
     - Access Level: List & Read
     - Resources: Select the specific ECR instance that you'll be using
   
-Once that's created, you'll want to get the Access Key ID and Secret access Key (AK/SK) of the user for the next step.
+Once that's created, you'll want to get the Access Key (AK) ID and Secret access Key (SK) of the user for the next step.
 
 ### Deploy AWS AK and SK to Kubernetes as a secret
 
@@ -100,7 +100,14 @@ kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
   --from-literal=aws-secret-access-key=[AWS_SECRET]
 ```
 
-### Deploy to Kubernetes with Helm 3
+### Deploy the Tool
+
+There are two ways to deploy this tool, and you only need to use one of them:
+
+- Helm chart
+- Plain YAML files
+
+#### Deploy to Kubernetes with Helm 3
 
 Add the repository
 
@@ -142,9 +149,9 @@ helm install \
   my-app-release-that-uses-ecr-image xxx
 ```
 
-### Deploy the job to Kubernetes without Helm
+#### Deploy the job to Kubernetes with plain YAML
 
-#### Required Kubernetes Service Account
+##### Required Kubernetes Service Account
 
 You will need to setup a service account with permissions to create/delete/get the resource docker secret.
 Ideally, you should give this service account the minimal amount of permissions needed to do its job.
@@ -155,7 +162,7 @@ You can use this apply this configuration directly as follows:
 kubectl apply -f example/service-account.yml
 ```
 
-#### Deploy the cron job
+##### Deploy the cron job
 
 You'll need to 
 Deploy the cron job using the example yaml file in `example/deploy.yml`:
