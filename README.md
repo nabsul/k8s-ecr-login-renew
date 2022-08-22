@@ -100,7 +100,7 @@ kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
   --from-literal=aws-secret-access-key=[AWS_SECRET]
 ```
 
-### Deploy the Tool
+### Deploy to Kubernetes
 
 There are two ways to deploy this tool, and you only need to use one of them:
 
