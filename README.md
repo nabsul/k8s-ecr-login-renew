@@ -25,7 +25,7 @@ Or by tag:
 
 ## Environment Variables
 
-The tool is mainly configured through environment variables (and/or secrets in kubernetes). These are:
+The tool is mainly configured through environment variables. These are:
 
 - AWS_ACCESS_KEY_ID (required): AWS access key used to create the Docker credentials.
 - AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
@@ -87,11 +87,19 @@ I find IAM to be rather tricky, but here are the steps that I followed:
     - Access Level: List & Read
     - Resources: Select the specific ECR instance that you'll be using
   
-Once that's created, you'll want to get the Access Key ID and Secret access Key (AK/SK) of the user for the next step.
+Once that's created, you'll want to get the Access Key (AK) ID and Secret access Key (SK) of the user for the next step.
 
-### Deploy AWS AK and SK to Kubernetes as a secret
+## Deployment
 
-You will then need to create a secret in Kubernetes with the IAM user's credentials.
+There are two methods available for deploying the required Kubernetes cronjob.
+
+- manually, using `kubectl apply`
+- via helm 3
+
+### Deployment secrets
+
+The cronjob will also require a secret containing your AWS credentials. This can be provided directly as a Kubernetes secret if you use the manual deployment method or helm 3.
+
 The secret can be created from the command line using `kubectl` as follows:
 
 ```shell script
@@ -99,6 +107,8 @@ kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
   --from-literal=aws-access-key-id=[AWS_KEY_ID] \
   --from-literal=aws-secret-access-key=[AWS_SECRET]
 ```
+
+Alternatively, if you use helm 3, you can supply the credentials as chart values directly, and a secret will be created. Instructions for doing this are detailed in the helm 3 deployment instructions below.
 
 ### Deploy to Kubernetes with Helm 3
 
@@ -108,7 +118,7 @@ Add the repository
 helm repo add nabsul https://nabsul.github.io/k8s-ecr-login-renew
 ```
 
-Add either an existing secret
+If you are deploying with an existing secret, add your credentials in the below format -
 
 ```yaml
 # see chart/values.yaml
@@ -124,9 +134,19 @@ values:
         awsSecretAccessKeyKey: aws-secret-access-key
 
 ```
-...or your AWS keys directly in values (see chart/values).
 
-Install the chart
+If you are supplying the secret values directly, as you would if using a plugin like `helm-secret` with `helmfile`, you can set the following values (see chart/values for more detail) -
+
+```yaml
+ecr:
+  auth:
+    existingSecret: null # note, this should be set to null to set values directly
+    secretKeys:
+      awsAccessKeyIdKey: AWS_ACCESS_KEY_ID
+      awsSecretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+```
+
+Next, install the chart -
 
 ```
 helm install \
@@ -134,7 +154,7 @@ helm install \
   k8s-ecr-login-renew nabsul/k8s-ecr-login-renew
 ```
 
-Finally you can use the pull secrets by providing the secret ref in your chart values. Many charts require them to be passed in `imagePullSecrets`
+Finally, you can use the pull secrets by providing the secret ref in your chart values. Many charts require them to be passed in `imagePullSecrets`
 
 ```
 helm install \

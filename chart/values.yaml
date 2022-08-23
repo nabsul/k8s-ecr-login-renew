@@ -3,7 +3,7 @@ secretName: docker-ecr
 # targetNamespace: "*"
 
 ecr:
-  region: us-east-1
+  # region: us-east-1
   # dockerRegistries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
   auth:
     # Either use an existing secret and optionally override secret key names
@@ -20,5 +20,5 @@ ecr:
 
 image:
   repository: nabsul/k8s-ecr-login-renew
-  tag: latest
+  tag: v1.7.1
   pullPolicy: IfNotPresent

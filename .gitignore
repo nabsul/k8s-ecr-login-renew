@@ -1,5 +1,8 @@
+#IDE configs
 .vs
 .idea
+#binaries
 k8s-ecr-login-renew.exe
 k8s-ecr-login-renew
+#emacs backups
 *~
