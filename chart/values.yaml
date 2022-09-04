@@ -1,24 +1,32 @@
-secretName: docker-ecr
-# target Namespace defaults to release namespace if left unspecified
-# targetNamespace: "*"
+# The names of the various Kubernetes objects that will be created
+names:
+  job: k8s-ecr-login-renew-job
+  cronJob: k8s-ecr-login-renew-cron
+  serviceAcount: k8s-ecr-login-renew-account
+  clusterRole: k8s-ecr-login-renew-role
+  clusterRoleBinding: k8s-ecr-login-renew-binding
 
-ecr:
-  region: us-east-1
-  # dockerRegistries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
-  auth:
-    # Either use an existing secret and optionally override secret key names
-    # (and optionally override secret key names to match your existing secret)
-    #
-    existingSecret: null
-    secretKeys:
-      awsAccessKeyIdKey: AWS_ACCESS_KEY_ID
-      awsSecretAccessKeyKey: AWS_SECRET_ACCESS_KEY
-    #
-    # Or provide AWS AK/SK (helm 3 values are saved as secrets)
+# this object defines the secret(s) that the tool will create for accessing ECR Docker registries
+dockerCredentials:
+  secretName: docker-ecr
+  targetNamespace: null # target Namespace defaults to release namespace if left unspecified
+
+  # By default the tool will create credentials for: https://[ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
+  # If you need credentials for multiple ECR instances (for different regions for example), you can populate this value with a comma separated list.
+  # Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
+  registries: null
+
+# AWS is accessed using an access key ID and secret access key.
+# You can either pre-populate a Kubernetes secret with this information,
+# or provide them as Helm values for the secret to be automatically created.
+awsCredentials:
+  region: us-east-1 # Region is required
+  secretName: 'k8s-ecr-login-renew-aws-secret'
+  secretKeys:
+    accessKeyId: 'AWS_ACCESS_KEY_ID'
+    secretAccessKey: 'AWS_SECRET_ACCESS_KEY'
+  # Leave the below values empty (null) if you are manually pre-creating the AWS secrets
+  # If you supply these values, a secret will be created from them
+  secretValues:
     accessKeyId: null
     secretAccessKey: null
-
-image:
-  repository: nabsul/k8s-ecr-login-renew
-  tag: latest
-  pullPolicy: IfNotPresent
