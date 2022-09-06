@@ -1,22 +1,23 @@
 # These are the most common parameters that you might want to change.
 
+# This value is required. It determines which AWS region to use.
+awsRegion: null
+
+# Leave these values empty (null) if you are manually pre-creating the AWS secrets
+# If you supply these values, a secret will be created from them
+awsAccessKeyId: null
+awsSecretAccessKey: null
+
 # The name of the secret to create containing the Docker credentials for ECR.
-dockerSecretName: docker-ecr
+dockerSecretName: k8s-ecr-login-renew-docker-secret
 
-# target Namespace defaults to release namespace if left unspecified
-targetNamespace: null
-
+# Comma-separated list of target Namespaces to create docker secrets in. 
+targetNamespace: "default"
 
 # By default the tool will create credentials for: https://[ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
 # If you need credentials for multiple ECR instances (for different regions for example), you can populate this value with a comma separated list.
 # Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
 registries: null
-
-
-# Leave the below values empty (null) if you are manually pre-creating the AWS secrets
-# If you supply these values, a secret will be created from them
-awsAccessKeyId: null
-awsSecretAccessKey: null
 
 # Below are less commonly changed parameters:
 
@@ -31,8 +32,7 @@ names:
 # AWS is accessed using an access key ID and secret access key.
 # You can either pre-populate a Kubernetes secret with this information,
 # or provide them as Helm values for the secret to be automatically created.
-awsCredentials:
-  region: null # Region is required
+aws:
   secretName: 'k8s-ecr-login-renew-aws-secret'
   secretKeys:
     accessKeyId: 'AWS_ACCESS_KEY_ID'

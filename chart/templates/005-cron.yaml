@@ -33,19 +33,19 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ required "AWS credentials secret name is required" .Values.awsCredentials.secretName }}
-                  key: {{ required "AWS credentials secret key acceess key id is required" .Values.awsCredentials.secretKeys.accessKeyId }}
+                  name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
+                  key: {{ required "AWS credentials secret key acceess key id is required" .Values.aws.secretKeys.accessKeyId }}
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ required "AWS credentials secret name is required" .Values.awsCredentials.secretName }}
-                  key: {{ required "AWS credentials secret key secret acceess key is required" .Values.awsCredentials.secretKeys.secretAccessKey }}
+                  name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
+                  key: {{ required "AWS credentials secret key secret acceess key is required" .Values.aws.secretKeys.secretAccessKey }}
             - name: AWS_REGION
-              value: {{ required "AWS region must be specified" .Values.awsCredentials.region }}
+              value: {{ required "AWS region must be specified" .Values.awsRegion }}
             - name: DOCKER_SECRET_NAME
-              value: {{ required "Secret name for Docker credentials is required" .Values.dockerCredentials.secretName }}
+              value: {{ required "Secret name for Docker credentials is required" .Values.dockerSecretName }}
             - name: TARGET_NAMESPACE
-              value: {{ required "Target namespace is required" .Values.dockerCredentials.targetNamespace }}
+              value: {{ required "Target namespace is required" .Values.targetNamespace }}
 {{- if .Values.dockerCredentials.registries }}
             - name: DOCKER_REGISTRIES
               value: {{ .Values.dockerCredentials.registries }}
