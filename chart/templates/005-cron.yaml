@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ required "Cron job name is required" .Values.names.cronJob }}
+  namespace: {{ .Release.Namespace | default "default" }}
   labels:
     app.kubernetes.io/name: {{ .Chart.Name }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -46,7 +47,7 @@ spec:
               value: {{ required "Secret name for Docker credentials is required" .Values.dockerSecretName }}
             - name: TARGET_NAMESPACE
               value: {{ required "Target namespace is required" .Values.targetNamespace }}
-{{- if .Values.dockerCredentials.registries }}
+{{- if .Values.registries }}
             - name: DOCKER_REGISTRIES
-              value: {{ .Values.dockerCredentials.registries }}
+              value: {{ .Values.registries }}
 {{- end }}
