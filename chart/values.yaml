@@ -1,3 +1,25 @@
+# These are the most common parameters that you might want to change.
+
+# The name of the secret to create containing the Docker credentials for ECR.
+dockerSecretName: docker-ecr
+
+# target Namespace defaults to release namespace if left unspecified
+targetNamespace: null
+
+
+# By default the tool will create credentials for: https://[ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
+# If you need credentials for multiple ECR instances (for different regions for example), you can populate this value with a comma separated list.
+# Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
+registries: null
+
+
+# Leave the below values empty (null) if you are manually pre-creating the AWS secrets
+# If you supply these values, a secret will be created from them
+awsAccessKeyId: null
+awsSecretAccessKey: null
+
+# Below are less commonly changed parameters:
+
 # The names of the various Kubernetes objects that will be created
 names:
   job: k8s-ecr-login-renew-job
@@ -6,27 +28,12 @@ names:
   clusterRole: k8s-ecr-login-renew-role
   clusterRoleBinding: k8s-ecr-login-renew-binding
 
-# this object defines the secret(s) that the tool will create for accessing ECR Docker registries
-dockerCredentials:
-  secretName: docker-ecr
-  targetNamespace: null # target Namespace defaults to release namespace if left unspecified
-
-  # By default the tool will create credentials for: https://[ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
-  # If you need credentials for multiple ECR instances (for different regions for example), you can populate this value with a comma separated list.
-  # Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
-  registries: null
-
 # AWS is accessed using an access key ID and secret access key.
 # You can either pre-populate a Kubernetes secret with this information,
 # or provide them as Helm values for the secret to be automatically created.
 awsCredentials:
-  region: us-east-1 # Region is required
+  region: null # Region is required
   secretName: 'k8s-ecr-login-renew-aws-secret'
   secretKeys:
     accessKeyId: 'AWS_ACCESS_KEY_ID'
     secretAccessKey: 'AWS_SECRET_ACCESS_KEY'
-  # Leave the below values empty (null) if you are manually pre-creating the AWS secrets
-  # If you supply these values, a secret will be created from them
-  secretValues:
-    accessKeyId: null
-    secretAccessKey: null

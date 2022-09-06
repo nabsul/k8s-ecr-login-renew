@@ -1,0 +1,4 @@
+Congratulations! k8s-ecr-login-renew should now be setup to run in your cluster.
+
+It might be a little while before the cron job gets executed on its schedule.
+To kick off a manual run, type: kubectl create job --from=cronjob/{{ .Values.names.cronjob }} {{ .Values.names.cronjob }}-manual-1
