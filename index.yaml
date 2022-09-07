@@ -1,7 +1,7 @@
 apiVersion: v1
 entries:
   k8s-ecr-login-renew:
-    - created: 2022-09-07T15:55:00
+    - created: 2022-09-07T09:26:00Z-0700
       description: Automatically renew AWS ECR login credentials in your Kubernetes cluster.
       home: https://helm.sh/helm
       name: k8s-ecr-login-renew
