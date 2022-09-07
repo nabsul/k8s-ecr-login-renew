@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ required "Cron job name is required" .Values.names.cronJob }}
+  namespace: {{ .Release.Namespace | default "default" }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  schedule: "* */6 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ .Chart.Name }}
+            helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+            app.kubernetes.io/instance: {{ .Release.Name }}
+            app.kubernetes.io/version: {{ .Chart.AppVersion }}        
+        spec:
+          serviceAccountName: {{ required "Service account name is required" .Values.names.serviceAcount }}
+          terminationGracePeriodSeconds: 0
+          restartPolicy: Never
+          containers:
+          - name: k8s-ecr-login-renew
+            imagePullPolicy: IfNotPresent
+            image: nabsul/k8s-ecr-login-renew:v{{ required "An app version is required" .Chart.AppVersion }}
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
+                  key: {{ required "AWS credentials secret key acceess key id is required" .Values.aws.secretKeys.accessKeyId }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
+                  key: {{ required "AWS credentials secret key secret acceess key is required" .Values.aws.secretKeys.secretAccessKey }}
+            - name: AWS_REGION
+              value: {{ required "AWS region must be specified" .Values.awsRegion }}
+            - name: DOCKER_SECRET_NAME
+              value: {{ required "Secret name for Docker credentials is required" .Values.dockerSecretName }}
+            - name: TARGET_NAMESPACE
+              value: {{ required "Target namespace is required" .Values.targetNamespace }}
+{{- if .Values.registries }}
+            - name: DOCKER_REGISTRIES
+              value: {{ .Values.registries }}
+{{- end }}
