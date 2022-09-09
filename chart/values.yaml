@@ -19,6 +19,10 @@ targetNamespace: "default"
 # Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
 registries: null
 
+# Set this to false in order to generate raw YAML that can be used without Helm
+# The main difference is that the default Helm labels are not added to the objects.
+forHelm: true
+
 # Below are less commonly changed parameters:
 
 # The names of the various Kubernetes objects that will be created
