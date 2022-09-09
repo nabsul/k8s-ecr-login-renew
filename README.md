@@ -134,27 +134,23 @@ helm uninstall k8s-ecr-login-renew
 
 ### Deploy to Kubernetes with plain YAML
 
-If you don't want to use Helm to manage installing this tool, you can generate plain YAML and deploy using `kubectl apply`.
-You will still use Helm to generate the YAML file, but it will not be used to actually manage the deployment.
-
-Check out this repo and from inside that directory:
+If you don't want to use Helm to manage installing this tool, you can use [`deploy.yaml`](https://github.com/nabsul/k8s-ecr-login-renew/blob/main/deploy.yaml) and `kubectl apply`.
+Note that this file is generated from the Helm template by running `helm template .\chart --set forHelm=false,awsRegion=us-west-2 > deploy.yaml`.
+You will likely need to review and edit this yaml file to your needs, and then you can deploy with:
 
 ```sh
-helm template .\chart --set forHelm=false,awsRegion=us-west-2 > mytemplate.yaml
-
-# If you need to, review and edit mytemplate.yaml, then deploy to kubernetes with:
-kubectl apply -f mytemplate.yaml
+kubectl apply -f deploy.yaml
 ```
 
-You can also remove the tool from your Kubernetes cluster with:
+You can also uninstall from your Kubernetes cluster with:
 
 ```sh
-kubectl delete -f mytemplate.yaml
+kubectl delete -f deploy.yaml
 ```
 
 ## Test the Cron Job
 
-To check if the cron job is correctly configured, you could wait for the job to be run naturally.
+To check if the cron job is correctly configured, you can wait for the job to be run.
 However, you can also manually trigger a job with the following command:
 
 ```sh
@@ -168,31 +164,13 @@ kubectl describe job k8s-ecr-login-renew-cron-manual-1
 kubectl logs job/k8s-ecr-login-renew-cron-manual-1
 ```
 
-### Deploy the Test Image
+### Deploying ECR Images
 
-If you have images pushed to your ECR registry, you should now be able to deploy them to a pod.
-If you edit `example/pod.ym` and replace `[ECR_URI]` with your registry's URI,
-you should now be able to run a pod with this command:
+You should now be able to deploy them to a pod.
+Note that you will need to specify the Docker secret in your Pod definition by adding a `imagePullSecrets` 
+field pointing to the created Docker secret (named `k8s-ecr-login-renew-docker-secret` by default).
 
-```shell script
-kubectl apply -f example/pod.yml
-```
-
-Check that the pod is running with the following commands:
-
-```shell script
-kubectl exec -it ecr-image-pull-test-demo bash
-```
-
-This should log you into the running pod, where you can execute commands such as `ls`, 
-`cat /usr/share/nginx/html/index.html` and `exit`.
-You can also try running the following:
-
-```shell script
-kubectl port-forward ecr-image-pull-test-demo 8080:80
-```
-
-And then you can open http://localhost:8080 in your browser to see an nginx default welcome message.
+You can find more information about this here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 
 ### Running in a namespace other than default namespace
 
