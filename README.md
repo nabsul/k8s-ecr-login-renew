@@ -8,6 +8,17 @@ To work around this, I created this small tool to automatically refresh the secr
 It deploys as a cron job and ensures that your Kubernetes cluster
 will always be able to pull Docker images from ECR.
 
+## Quick Start
+
+Prerequisite: AWS IAM credentials with permission to read ECR data.
+
+Installation with Helm:
+
+```sh
+helm repo add nabsul https://nabsul.github.io/helm
+helm install k8s-ecr-login-renew nabsul/k8s-ecr-login-renew --set awsRegion=[REGION],awsAccessKeyId=[ACCESS_KEY_ID],awsSecretAccessKey=[SECRET_KEY]
+```
+
 ## Docker Images
 
 The tool is built for and supports the following Architectures:
@@ -115,13 +126,13 @@ There are two ways to deploy this tool, and you only need to use one of them:
 Add the repository
 
 ```
-helm repo add nabsul https://nabsul.github.io/k8s-ecr-login-renew
+helm repo add nabsul https://nabsul.github.io/helm
 ```
 
 Deploy to your Kubernetes cluster with:
 
 ```sh
-helm install k8s-ecr-login-renew nabsul/k8s-ecr-login-renew --set awsRegion=[YOUR_REGION],
+awsRegion=[REGION],awsAccessKeyId=[ACCESS_KEY_ID],awsSecretAccessKey=[SECRET_KEY]
 ```
 
 Note: If you have already created a secret with your IAM credentials, you only need to provide a region parameter to Helm.
