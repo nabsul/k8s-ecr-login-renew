@@ -1,0 +1,83 @@
+---
+# Source: k8s-ecr-login-renew/templates/001-ServiceAccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-ecr-login-renew-account
+  namespace: default
+---
+# Source: k8s-ecr-login-renew/templates/002-ClusterRole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-ecr-login-renew-role
+rules:
+  - apiGroups: [""]
+    resources:
+      - namespaces
+    verbs:
+      - list
+  - apiGroups: [""]
+    resources:
+      - secrets
+      - serviceaccounts
+      - serviceaccounts/token
+    verbs:
+      - 'delete'
+      - 'create'
+      - 'patch'
+      - 'get'
+---
+# Source: k8s-ecr-login-renew/templates/003-ClusterRoleBinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-ecr-login-renew-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-ecr-login-renew-role
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ecr-login-renew-account
+    namespace: default
+---
+# Source: k8s-ecr-login-renew/templates/005-CronJob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-ecr-login-renew-cron
+  namespace: default
+spec:
+  schedule: "* */6 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+        spec:
+          serviceAccountName: k8s-ecr-login-renew-account
+          terminationGracePeriodSeconds: 0
+          restartPolicy: Never
+          containers:
+          - name: k8s-ecr-login-renew
+            imagePullPolicy: IfNotPresent
+            image: nabsul/k8s-ecr-login-renew:v1.7.1
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-ecr-login-renew-aws-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-ecr-login-renew-aws-secret
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_REGION
+              value: us-west-2
+            - name: DOCKER_SECRET_NAME
+              value: k8s-ecr-login-renew-docker-secret
+            - name: TARGET_NAMESPACE
+              value: default

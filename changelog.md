@@ -1,5 +1,24 @@
 # Changelog
 
+## V1.7.2 (2022-09-10) - Helm Charts!
+
+- Added support for deploying via Helm chart. Thanks to:
+  - [devec0](https://github.com/devec0): v1.7.1
+  - [PawelLipski](https://github.com/PawelLipski): v1.7.1
+  - [xavidop](https://github.com/xavidop): v1.7.1
+  - [armenr](https://github.com/armenr): v1.7.1
+ 
+
+## V1.7.1 (2022-06-05) - V1.7.0 for Real
+
+I forgot to merge the change that stops using root user in the container. Thanks to [PawelLipski](https://github.com/PawelLipski) for spotting this.
+
+## V1.7.0 (2022-06-05) - Security and Updates
+
+- The job now runs as a user in the container instead of root (#30)
+- Updated to latest version of Go
+- Updated dependencies to latest versions
+
 ## v1.6 (2021-10-31) - Spooky Separators!
 
 - Support multi-line and whitespace in Namespace list

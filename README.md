@@ -8,6 +8,17 @@ To work around this, I created this small tool to automatically refresh the secr
 It deploys as a cron job and ensures that your Kubernetes cluster
 will always be able to pull Docker images from ECR.
 
+## Quick Start
+
+Prerequisite: AWS IAM credentials with permission to read ECR data.
+
+Installation with Helm:
+
+```sh
+helm repo add nabsul https://nabsul.github.io/helm
+helm install k8s-ecr-login-renew nabsul/k8s-ecr-login-renew --set awsRegion=[REGION],awsAccessKeyId=[ACCESS_KEY_ID],awsSecretAccessKey=[SECRET_KEY]
+```
+
 ## Docker Images
 
 The tool is built for and supports the following Architectures:
@@ -15,17 +26,17 @@ The tool is built for and supports the following Architectures:
 - `linux/arm64`
 - `linux/arm/v7`
 
-If there is an architecture that isn't supported you can request it [Here](https://github.com/nabsul/k8s-ecr-login-renew/issues).
+If there is an architecture that isn't supported you can request it [here](https://github.com/nabsul/k8s-ecr-login-renew/issues).
 
-The latest image can be pulled by any supported Architecture:
-- `nabsul/k8s-ecr-login-renew:latest`
+The Docker image for running this tool in Kubernetes is published here: https://hub.docker.com/r/nabsul/k8s-ecr-login-renew
 
-Or by tag:
-- `nabsul/k8s-ecr-login-renew:v1.6`
+Note: Although a `latest` tag is currently being published, I highly recommend using a specific version.
+With the `latest` you run the risk of using an outdated version of the tool, or getting upgraded to a newer version before you're ready.
+I will eventually deprecate the `latest` tag.
 
 ## Environment Variables
 
-The tool is mainly configured through environment variables. These are:
+The tool is configured using the following environment variables:
 
 - AWS_ACCESS_KEY_ID (required): AWS access key used to create the Docker credentials.
 - AWS_SECRET_ACCESS_KEY (required): AWS secret needed to fetch Docker credentials from AWS.
@@ -38,33 +49,28 @@ The tool is mainly configured through environment variables. These are:
   If none is provided, the default URL returned from AWS is used.
   - Example: `DOCKER_REGISTRIES=https://321321.dkr.ecr.us-west-2.amazonaws.com,https://123123.dkr.ecr.us-east-2.amazonaws.com`
 
-## Running the Example
+## Prerequisites
 
-The following sections describe step-by-step how to set the cron job up and test it.
-You should be able to use the `example/service-account.yml` and `example/deploy.yml` files as-is for testing purposes,
-but you'll need to fill in you registry's URL before using `example/pod.yml`.
+The following sections describe step-by-step how to set up the prerequisites needed to deploy this tool.
 
 ### Create an ECR Instance
 
-I'm not going to describe this in too much details because
-there is 
+I'm not going to describe this in too much details because there is 
 [plenty of documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html) 
-that describes how to do this.
-Here are a few pointers:
+that describes how to do this. Here are a few pointers:
 
 - Create an AWS ECR instance
 - Create a repository inside that instance
 
 ### Push a Test Image to ECR 
 
-To complete the final steps of these instructions, you'll need to create and upload an image to ECR.
-As with the previous section, there's plenty of good documentation out there.
-But if you're looking to quickly try things out, I've included a trivial Dockerfile
-that builds an nginx server image with no modifications:
+If you are not already using ECR and pushing images to it,
+you'll need to create  and upload an test image to ECR.
+Theres's plenty of good documentation out there, but basically:
 
 - Install the AWS CLI tool and Docker on your machine 
 - Log into the registry: `$(aws2 ecr get-login --no-include-email --region [AWS_REGION])`
-- Build your image: `docker build -t [ECR_URL]:latest example/.`
+- Build your image: `docker build -t [ECR_URL]:latest .`
 - Push your docker image to the registry: `docker push [ECR_URL]:latest`
 
 ### Setup AWS Permissions
@@ -79,99 +85,103 @@ Ideally you should set up a policy that:
 I find IAM to be rather tricky, but here are the steps that I followed:
 
 - Select "Add User", select the "Programmatic Access" option
-- Create a group for that user
-- Create a policy for that group with the following configuration:
-  - Service: Elastic Container Registry
-  - Access Level: List & Read
-  - Resources: Select the specific ECR instance that you'll be using
+- (Optionally) Create a group for that user
+- Authorize the group or user to pull images from ECR. Either
+  a. Use the existing AWS policy "AmazonEC2ContainerRegistryReadOnly"
+  b. or create a policy for that group or user with the following configuration:
+    - Service: Elastic Container Registry
+    - Access Level: List & Read
+    - Resources: Select the specific ECR instance that you'll be using
   
-Once that's created, you'll want to get the access key ID and secret for the next step.
+Once that's created, you'll want to copy and save the Access Key ID and Secret Access Key of the user for the next step.
+I recommend storing these secrets in some kind of secret store, such as: 
+[Doppler](https://www.doppler.com/),
+[Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault),
+[AWS Secret Store](https://azure.microsoft.com/en-us/services/key-vault),
+[1Password](https://1password.com/),
+[LastPass](https://www.lastpass.com/)
 
-### Deploy AWS Access Keys to Kubernetes
+### Deploy AWS Credentials to Kubernetes as a secret
 
-You will then need to create a secret in Kubernetes with the IAM user's credentials.
+Note: If you want to use Helm to create this secret automatically, you can skip this section.
+
+You will need to create a secret in Kubernetes with the IAM user's credentials.
 The secret can be created from the command line using `kubectl` as follows:
 
 ```shell script
 kubectl create secret -n ns-ecr-renew-demo generic ecr-renew-cred-demo \
-  --from-literal=REGION=[AWS_REGION] \
-  --from-literal=ID=[AWS_KEY_ID] \
-  --from-literal=SECRET=[AWS_SECRET]
+  --from-literal=aws-access-key-id=[AWS_KEY_ID] \
+  --from-literal=aws-secret-access-key=[AWS_SECRET]
 ```
 
-### Required Kubernetes Service Account
+## Deploy to Kubernetes
 
-You will need to setup a service account with permissions to create/delete/get the resource docker secret.
-Ideally, you should give this service account the minimal amount of permissions needed to do its job.
-An example of this minimal permissions setup can be found in `example/service-account.yml`.
-You can use this apply this configuration directly as follows:
+There are two ways to deploy this tool, and you only need to use one of them:
 
-```shell script
-kubectl apply -f example/service-account.yml
+- Helm chart
+- Plain YAML files
+
+### Deploy to Kubernetes with Helm 3
+
+Add the repository
+
+```
+helm repo add nabsul https://nabsul.github.io/helm
 ```
 
-### Deploy the cron job
+Deploy to your Kubernetes cluster with:
 
-You'll need to 
-Deploy the cron job using the example yaml file in `example/deploy.yml`:
-
-```shell script
-kubectl apply -f example/deploy.yml
+```sh
+awsRegion=[REGION],awsAccessKeyId=[ACCESS_KEY_ID],awsSecretAccessKey=[SECRET_KEY]
 ```
 
-### Test the Cron Job
+Note: If you have already created a secret with your IAM credentials, you only need to provide a region parameter to Helm.
 
-The easiest way to test is to manually trigger the cron job from the Kubernetes dashboard.
-This should create a job and you can then check the logs for any error messages.
-Once the job completes, you should notice that the target docker secrets object was either created or updated.
+You can uninstall the tool with:
 
-The job can also be manually triggered with the following command:
+```sh
+helm uninstall k8s-ecr-login-renew
+```
 
-```shell script
-kubectl create job --from=cronjob/cron-ecr-renew-demo cron-ecr-renew-demo-manual-1
+### Deploy to Kubernetes with plain YAML
+
+If you don't want to use Helm to manage installing this tool, you can use [`deploy.yaml`](https://github.com/nabsul/k8s-ecr-login-renew/blob/main/deploy.yaml) and `kubectl apply`.
+Note that this file is generated from the Helm template by running `helm template .\chart --set forHelm=false,awsRegion=us-west-2 > deploy.yaml`.
+You will likely need to review and edit this yaml file to your needs, and then you can deploy with:
+
+```sh
+kubectl apply -f deploy.yaml
+```
+
+You can also uninstall from your Kubernetes cluster with:
+
+```sh
+kubectl delete -f deploy.yaml
+```
+
+## Test the Cron Job
+
+To check if the cron job is correctly configured, you can wait for the job to be run.
+However, you can also manually trigger a job with the following command:
+
+```sh
+kubectl create job --from=cronjob/k8s-ecr-login-renew-cron k8s-ecr-login-renew-cron-manual-1
 ```
 
 You can view the status and logs of the job with the following commands:
 
-```shell script
-kubectl describe job cron-ecr-renew-demo-manual-1
-kubectl logs job/cron-ecr-renew-demo-manual-1
+```sh
+kubectl describe job k8s-ecr-login-renew-cron-manual-1
+kubectl logs job/k8s-ecr-login-renew-cron-manual-1
 ```
 
-### Deploy the Test Image
+### Deploying ECR Images
 
-If you pushed an image to your ECR registry, you should now be able to deploy that image to a pod.
-If you edit `example/pod.ym` and replace `[ECR_URI]` with your registry's URI,
-you should now be able to run a pod with this command:
+You should now be able to deploy them to a pod.
+Note that you will need to specify the Docker secret in your Pod definition by adding a `imagePullSecrets` 
+field pointing to the created Docker secret (named `k8s-ecr-login-renew-docker-secret` by default).
 
-```shell script
-kubectl apply -f example/pod.yml
-```
-
-Check that the pod is running with the following commands:
-
-```shell script
-kubectl exec -it ecr-image-pull-test-demo bash
-```
-
-This should log you into the running pod, where you can execute commands such as `ls`, 
-`cat /usr/share/nginx/html/index.html` and `exit`.
-You can also try running the following:
-
-```shell script
-kubectl port-forward ecr-image-pull-test-demo 8080:80
-```
-
-And then you can open http://localhost:8080 in your browser to see an nginx default welcome message.
-
-### Clean up after the Demo
-
-After running this demo, you might want to clean up everything.
-Since the demo is all in its own namespace, just delete it:
-
-```shell script
-kubectl delete namespace ns-ecr-renew-demo
-```
+You can find more information about this here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 
 ### Running in a namespace other than default namespace
 
