@@ -19,8 +19,8 @@ spec:
     spec:
       template:
         metadata:
-          annotations: 
 {{- with .Values.podAnnotations }}
+          annotations:
             {{- toYaml . | trim | nindent 12 }}
 {{- end }}
 {{- if .Values.forHelm }}
