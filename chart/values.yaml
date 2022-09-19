@@ -41,3 +41,6 @@ aws:
   secretKeys:
     accessKeyId: 'AWS_ACCESS_KEY_ID'
     secretAccessKey: 'AWS_SECRET_ACCESS_KEY'
+
+# Pod annotations for the pods that are created by the cronjob
+podAnnotations: {}

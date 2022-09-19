@@ -19,6 +19,10 @@ spec:
     spec:
       template:
         metadata:
+          annotations: 
+{{- with .Values.podAnnotations }}
+            {{- toYaml . | trim | nindent 12 }}
+{{- end }}
 {{- if .Values.forHelm }}
           labels:
             app.kubernetes.io/name: {{ .Chart.Name }}
