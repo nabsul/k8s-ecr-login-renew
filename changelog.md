@@ -1,19 +1,24 @@
 # Changelog
 
-## V1.7.2 (2022-09-10) - Helm Charts!
+## Helm v1.0.0 (2022-09-10) - Helm Charts!
+
+- Added support for custom pod annotations. Thanks to
+  - [xavidop](https://github.com/xavidop): #39
+
+## Helm v1.0.0 (2022-09-10) - Helm Charts!
 
 - Added support for deploying via Helm chart. Thanks to:
-  - [devec0](https://github.com/devec0): v1.7.1
-  - [PawelLipski](https://github.com/PawelLipski): v1.7.1
-  - [xavidop](https://github.com/xavidop): v1.7.1
-  - [armenr](https://github.com/armenr): v1.7.1
+  - [devec0](https://github.com/devec0)
+  - [PawelLipski](https://github.com/PawelLipski)
+  - [xavidop](https://github.com/xavidop)
+  - [armenr](https://github.com/armenr)
  
 
-## V1.7.1 (2022-06-05) - V1.7.0 for Real
+## v1.7.1 (2022-06-05) - V1.7.0 for Real
 
 I forgot to merge the change that stops using root user in the container. Thanks to [PawelLipski](https://github.com/PawelLipski) for spotting this.
 
-## V1.7.0 (2022-06-05) - Security and Updates
+## v1.7.0 (2022-06-05) - Security and Updates
 
 - The job now runs as a user in the container instead of root (#30)
 - Updated to latest version of Go
