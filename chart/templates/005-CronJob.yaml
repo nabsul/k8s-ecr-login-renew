@@ -12,9 +12,12 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 spec:
-  schedule: "* */6 * * *"
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 5
+  schedule: "{{ required "Schedule is required" .Values.schedule }}"
+  successfulJobsHistoryLimit: {{ required "Success job history limit is required" .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ required "Failed job history limit is required" .Values.failedJobsHistoryLimit }}
+{{- if .Values.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.startingDeadlineSeconds }}
+{{- end }}
   jobTemplate:
     spec:
       template:
@@ -32,7 +35,7 @@ spec:
 {{- end }}
         spec:
           serviceAccountName: {{ required "Service account name is required" .Values.names.serviceAcount }}
-          terminationGracePeriodSeconds: 0
+          terminationGracePeriodSeconds: {{ required "Termination grace period is required" .Values.terminationGracePeriodSeconds }}
           restartPolicy: Never
           containers:
           - name: k8s-ecr-login-renew

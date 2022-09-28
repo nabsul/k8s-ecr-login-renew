@@ -1,5 +1,17 @@
 # These are the most common parameters that you might want to change.
 
+# the schedule of the cronjob
+schedule: "* */6 * * *"
+
+# Success job history limit 
+successfulJobsHistoryLimit: 3
+
+# Failed job history limit 
+failedJobsHistoryLimit: 5
+
+# Termination grace period Seconds 
+terminationGracePeriodSeconds: 0
+
 # This value is required. It determines which AWS region to use.
 awsRegion: null
 
