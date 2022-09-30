@@ -29,6 +29,9 @@ cronjob:
   # Failed job history limit 
   failedJobsHistoryLimit: 5
   
+  # The deadline afterwhich running the cronJob will be skipped. See https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#cron-job-limitations for defaults and details.
+  startingDeadlineSeconds: null
+
   # Termination grace period Seconds 
   terminationGracePeriodSeconds: 0
 
