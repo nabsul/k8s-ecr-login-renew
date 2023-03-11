@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	envVarAwsSecret       = "DOCKER_SECRET_NAME"
-	envVarTargetNamespace = "TARGET_NAMESPACE"
-	envVarRegistries      = "DOCKER_REGISTRIES"
+	envVarAwsSecret        = "DOCKER_SECRET_NAME"
+	envVarTargetNamespace  = "TARGET_NAMESPACE"
+	envVarExcludeNamespace = "EXCLUDE_NAMESPACE"
+	envVarRegistries       = "DOCKER_REGISTRIES"
 )
 
 func checkErr(err error) {
@@ -38,7 +39,9 @@ func main() {
 	servers := getServerList(credentials.Server)
 	fmt.Printf("Docker Registries: %s\n", strings.Join(servers, ","))
 
-	namespaces, err := k8s.GetNamespaces(os.Getenv(envVarTargetNamespace))
+	targetNamespace := os.Getenv(envVarTargetNamespace)
+	excludeNamespace := os.Getenv(envVarExcludeNamespace)
+	namespaces, err := k8s.GetNamespaces(targetNamespace, excludeNamespace)
 	checkErr(err)
 	fmt.Printf("Updating kubernetes secret [%s] in %d namespaces\n", name, len(namespaces))
 

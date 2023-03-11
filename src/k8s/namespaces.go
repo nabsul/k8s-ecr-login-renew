@@ -7,14 +7,49 @@ import (
 	"strings"
 )
 
-func GetNamespaces(envVar string) ([]string, error) {
-	if envVar == "" {
-		envVar = "default"
+func GetNamespaces(includeValue, excludeValue string) ([]string, error) {
+	allNamespaces, err := getAllNamespaces()
+	if err != nil {
+		return nil, err
 	}
 
-	envVar = formatNamespaceList(envVar)
+	includeList, err := getNamespaceList(includeValue, "default", allNamespaces)
+	if err != nil {
+		return nil, err
+	}
 
-	list := strings.Split(envVar, ",")
+	excludeList, err := getNamespaceList(excludeValue, "", allNamespaces)
+	if err != nil {
+		return nil, err
+	}
+
+	lookup := map[string]bool{}
+	for _, xVal := range excludeList {
+		lookup[xVal] = true
+	}
+
+	result := make([]string, 0)
+	for _, iVal := range includeList {
+		_, found := lookup[iVal]
+		if found {
+			result = append(result, iVal)
+		}
+	}
+
+	return result, nil
+}
+
+func getNamespaceList(value, defaultValue string, allNamespaces []string) ([]string, error) {
+	if value == "" {
+		value = defaultValue
+	}
+
+	value = formatNamespaceList(value)
+	if value == "" {
+		return make([]string, 0, 0), nil
+	}
+
+	list := strings.Split(value, ",")
 	single := make([]string, 0, len(list))
 	regex := make([]*regexp.Regexp, 0, len(list))
 
@@ -30,7 +65,7 @@ func GetNamespaces(envVar string) ([]string, error) {
 		}
 	}
 
-	matchedNamespaces, err := findNamespaces(regex)
+	matchedNamespaces, err := findNamespaces(regex, allNamespaces)
 	if err != nil {
 		return nil, err
 	}
@@ -84,18 +119,13 @@ func getRegex(val string) (*regexp.Regexp, error) {
 	return regexp.Compile(regex)
 }
 
-func findNamespaces(regex []*regexp.Regexp) ([]string, error) {
+func findNamespaces(regex []*regexp.Regexp, allNamespaces []string) ([]string, error) {
 	if len(regex) == 0 {
 		return nil, nil
 	}
 
-	namespaces, err := getAllNamespaces()
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]string, 0, len(namespaces))
-	for _, ns := range namespaces {
+	result := make([]string, 0, len(allNamespaces))
+	for _, ns := range allNamespaces {
 		if isAnyMatch(ns, regex) {
 			result = append(result, ns)
 		}
