@@ -60,3 +60,5 @@ jobs:
           push: true
           tags: ${{ steps.meta_ghcr.outputs.tags }}
           labels: ${{ steps.meta_ghcr.outputs.labels }}
+          cache-from: type=gha,scope=k8s-ecr-login-renew
+          cache-to: type=gha,scope=k8s-ecr-login-renew
