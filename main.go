@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/nabsul/k8s-ecr-login-renew/src/aws"
-	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
+	"k8s-ecr-login-renew/src/aws"
+	"k8s-ecr-login-renew/src/k8s"
 	"os"
 	"strings"
 	"time"

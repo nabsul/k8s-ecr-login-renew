@@ -1,8 +1,11 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.20-alpine AS build
 WORKDIR /go/src/app
-ADD . /go/src/app
-RUN go get -d -v ./...
+COPY go.mod /go/src/app/
+COPY go.sum /go/src/app/
+RUN go mod download
+
+COPY . .
 RUN go build -o /go/bin/app
 
 FROM alpine:3.17
