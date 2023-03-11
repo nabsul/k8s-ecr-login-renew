@@ -11,3 +11,5 @@
 - [devec0](https://github.com/devec0): Helm v1.0.0
 - [xavidop](https://github.com/xavidop): Helm v1.0.0
 - [armenr](https://github.com/armenr): Helm v1.0.0
+- [xavidop](https://github.com/xavidop): Helm v1.0.1
+- [xavidop](https://github.com/xavidop): Helm v1.0.2
