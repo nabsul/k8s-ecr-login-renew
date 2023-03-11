@@ -8,69 +8,56 @@ import (
 )
 
 func GetNamespaces(includeValue, excludeValue string) ([]string, error) {
-	allNamespaces, err := getAllNamespaces()
+	var err error
+	var allNamespaces []string
+	var includeList, excludeList []*regexp.Regexp
+
+	includeList, err = getNamespaceRegexList(includeValue, "default")
 	if err != nil {
 		return nil, err
 	}
 
-	includeList, err := getNamespaceList(includeValue, "default", allNamespaces)
+	excludeList, err = getNamespaceRegexList(excludeValue, "")
 	if err != nil {
 		return nil, err
 	}
 
-	excludeList, err := getNamespaceList(excludeValue, "", allNamespaces)
+	allNamespaces, err = getAllNamespaces()
 	if err != nil {
 		return nil, err
-	}
-
-	lookup := map[string]bool{}
-	for _, xVal := range excludeList {
-		lookup[xVal] = true
 	}
 
 	result := make([]string, 0)
-	for _, iVal := range includeList {
-		_, found := lookup[iVal]
-		if found {
-			result = append(result, iVal)
+	for _, ns := range allNamespaces {
+		if isAnyMatch(ns, includeList) && !isAnyMatch(ns, excludeList) {
+			result = append(result, ns)
 		}
 	}
 
 	return result, nil
 }
 
-func getNamespaceList(value, defaultValue string, allNamespaces []string) ([]string, error) {
+func getNamespaceRegexList(value, defaultValue string) ([]*regexp.Regexp, error) {
+	result := make([]*regexp.Regexp, 0, 0)
+
 	if value == "" {
 		value = defaultValue
 	}
 
 	value = formatNamespaceList(value)
 	if value == "" {
-		return make([]string, 0, 0), nil
+		return result, nil
 	}
 
-	list := strings.Split(value, ",")
-	single := make([]string, 0, len(list))
-	regex := make([]*regexp.Regexp, 0, len(list))
-
-	for _, val := range list {
-		if hasWildCard(val) {
-			r, err := getRegex(val)
-			if err != nil {
-				return nil, err
-			}
-			regex = append(regex, r)
-		} else {
-			single = append(single, val)
+	for _, val := range strings.Split(value, ",") {
+		r, err := getRegex(val)
+		if err != nil {
+			return nil, err
 		}
+		result = append(result, r)
 	}
 
-	matchedNamespaces, err := findNamespaces(regex, allNamespaces)
-	if err != nil {
-		return nil, err
-	}
-
-	return unique(append(single, matchedNamespaces...)), nil
+	return result, nil
 }
 
 var namespaceWhitespace = []string{" ", "\r", "\t", "\v"}
@@ -90,48 +77,11 @@ func formatNamespaceList(namespaceList string) string {
 	return formattedNamespaceList
 }
 
-func unique(values []string) []string {
-	result := make([]string, 0, len(values))
-	check := map[string]bool{}
-	for _, val := range values {
-		_, ok := check[val]
-		if !ok {
-			check[val] = true
-			result = append(result, val)
-		}
-	}
-	return result
-}
-
-func hasWildCard(val string) bool {
-	for _, r := range []rune{'*', '?'} {
-		if strings.ContainsRune(val, r) {
-			return true
-		}
-	}
-	return false
-}
-
 func getRegex(val string) (*regexp.Regexp, error) {
 	regex := strings.Replace(val, "*", ".*", -1)
 	regex = strings.Replace(regex, "?", ".", -1)
 	regex = "^" + regex + "$"
 	return regexp.Compile(regex)
-}
-
-func findNamespaces(regex []*regexp.Regexp, allNamespaces []string) ([]string, error) {
-	if len(regex) == 0 {
-		return nil, nil
-	}
-
-	result := make([]string, 0, len(allNamespaces))
-	for _, ns := range allNamespaces {
-		if isAnyMatch(ns, regex) {
-			result = append(result, ns)
-		}
-	}
-
-	return result, nil
 }
 
 func isAnyMatch(ns string, regexes []*regexp.Regexp) bool {
