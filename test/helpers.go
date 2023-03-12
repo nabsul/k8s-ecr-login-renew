@@ -1,15 +1,18 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"fmt"
+
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
 func checkNamespaces(c *kubernetes.Clientset, testNamespaces []string) error {
-	namespaces, err := c.CoreV1().Namespaces().List(metaV1.ListOptions{})
+	ctx := context.Background()
+	namespaces, err := c.CoreV1().Namespaces().List(ctx, metaV1.ListOptions{})
 	if nil != err {
 		return err
 	}
@@ -34,7 +37,8 @@ func checkNamespaces(c *kubernetes.Clientset, testNamespaces []string) error {
 }
 
 func createNamespace(c *kubernetes.Clientset, name string) (*coreV1.Namespace, error) {
+	ctx := context.Background()
 	ns := &coreV1.Namespace{}
 	ns.Name = name
-	return c.CoreV1().Namespaces().Create(ns)
+	return c.CoreV1().Namespaces().Create(ctx, ns, metaV1.CreateOptions{})
 }

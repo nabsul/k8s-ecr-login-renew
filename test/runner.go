@@ -1,12 +1,14 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 	"time"
+
+	"github.com/nabsul/k8s-ecr-login-renew/src/k8s"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func runTest(cfg config) {
@@ -113,7 +115,7 @@ func cleanup(cfg config) {
 	}
 
 	for _, ns := range allNamespaces() {
-		err = c.CoreV1().Namespaces().Delete(ns, &metaV1.DeleteOptions{})
+		err = c.CoreV1().Namespaces().Delete(context.Background(), ns, metaV1.DeleteOptions{})
 		if err != nil {
 			fmt.Printf("failed to cleanup namespace [%s]: [%s}\n", ns, err)
 		}
