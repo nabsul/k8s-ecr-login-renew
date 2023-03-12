@@ -1,31 +1,35 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	batchV1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"time"
 )
 
 func initCronJob(c *kubernetes.Clientset, targetNamespace, awsRegion, awsId, awsSecret string) error {
+	ctx := context.Background()
 	job := createCronJob(targetNamespace, awsRegion, awsId, awsSecret)
-	_, err := c.BatchV1beta1().CronJobs(ConstSvcNamespace).Create(&job)
+	_, err := c.BatchV1beta1().CronJobs(ConstSvcNamespace).Create(ctx, &job, metaV1.CreateOptions{})
 	return err
 }
 
 func runCronJob(c *kubernetes.Clientset) (string, error) {
+	ctx := context.Background()
 	getOpt := metaV1.GetOptions{}
-	cron, err := c.BatchV1beta1().CronJobs(ConstSvcNamespace).Get(ConstCronJobName, getOpt)
+	cron, err := c.BatchV1().CronJobs(ConstSvcNamespace).Get(ctx, ConstCronJobName, getOpt)
 	if err != nil {
 		return "", err
 	}
 
 	job := createJob(*cron)
-	run, err := c.BatchV1().Jobs(ConstSvcNamespace).Create(&job)
+	run, err := c.BatchV1().Jobs(ConstSvcNamespace).Create(ctx, &job, metaV1.CreateOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -33,7 +37,7 @@ func runCronJob(c *kubernetes.Clientset) (string, error) {
 	checkCount := 0
 	for run.Status.CompletionTime == nil {
 		time.Sleep(5 * time.Second)
-		run, err = c.BatchV1().Jobs(ConstSvcNamespace).Get(job.Name, getOpt)
+		run, err = c.BatchV1().Jobs(ConstSvcNamespace).Get(ctx, job.Name, getOpt)
 		if err != nil {
 			return "", err
 		}
@@ -44,7 +48,8 @@ func runCronJob(c *kubernetes.Clientset) (string, error) {
 		}
 	}
 
-	list, err := c.CoreV1().Pods(ConstSvcNamespace).List(metaV1.ListOptions{LabelSelector: "job-name=test-ecr-renew-job"})
+	listOpt := metaV1.ListOptions{LabelSelector: "job-name=test-ecr-renew-job"}
+	list, err := c.CoreV1().Pods(ConstSvcNamespace).List(ctx, listOpt)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +61,7 @@ func runCronJob(c *kubernetes.Clientset) (string, error) {
 	pod := list.Items[0]
 
 	req := c.CoreV1().Pods(ConstSvcNamespace).GetLogs(pod.Name, &coreV1.PodLogOptions{})
-	res := req.Do()
+	res := req.Do(ctx)
 	bytes, err := res.Raw()
 	if err != nil {
 		return "", err
@@ -65,7 +70,7 @@ func runCronJob(c *kubernetes.Clientset) (string, error) {
 	return string(bytes), nil
 }
 
-func createJob(cron v1beta1.CronJob) batchV1.Job {
+func createJob(cron batchV1.CronJob) batchV1.Job {
 	return batchV1.Job{
 		TypeMeta: metaV1.TypeMeta{
 			Kind: "Job",

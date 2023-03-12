@@ -1,6 +1,8 @@
 package test
 
 import (
+	"context"
+
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -8,6 +10,7 @@ import (
 )
 
 func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, canGetNamespaces bool) error {
+	ctx := context.Background()
 	account := &coreV1.ServiceAccount{
 		TypeMeta: metaV1.TypeMeta{
 			Kind: "ServiceAccount",
@@ -18,7 +21,7 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 		},
 	}
 
-	svc, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(account)
+	svc, err := c.CoreV1().ServiceAccounts(ConstSvcNamespace).Create(ctx, account, metaV1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -38,26 +41,28 @@ func createServiceAccount(c *kubernetes.Clientset, allowedNamespaces []string, c
 }
 
 func grantNamespaceAccess(c *kubernetes.Clientset, ns string, svc *coreV1.ServiceAccount) error {
+	ctx := context.Background()
 	role := createRole(ns)
-	_, err := c.RbacV1().Roles(ns).Create(role)
+	_, err := c.RbacV1().Roles(ns).Create(ctx, role, metaV1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
 	binding := createRoleBinding(role, svc)
-	_, err = c.RbacV1().RoleBindings(ns).Create(binding)
+	_, err = c.RbacV1().RoleBindings(ns).Create(ctx, binding, metaV1.CreateOptions{})
 	return err
 }
 
 func grantNamespaceList(c *kubernetes.Clientset) error {
+	ctx := context.Background()
 	role := createNamespaceRole()
-	_, err := c.RbacV1().ClusterRoles().Create(&role)
+	_, err := c.RbacV1().ClusterRoles().Create(ctx, &role, metaV1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
 	binding := createNamespaceRoleBinding()
-	_, err = c.RbacV1().ClusterRoleBindings().Create(&binding)
+	_, err = c.RbacV1().ClusterRoleBindings().Create(ctx, &binding, metaV1.CreateOptions{})
 	return err
 }
 
