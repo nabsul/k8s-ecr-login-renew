@@ -55,6 +55,7 @@ names:
 # AWS is accessed using an access key ID and secret access key.
 # You can either pre-populate a Kubernetes secret with this information,
 # or provide them as Helm values for the secret to be automatically created.
+# Set `aws` to null if you will not be authenticating with environment variables.
 aws:
   secretName: 'k8s-ecr-login-renew-aws-secret'
   secretKeys:
