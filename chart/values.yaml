@@ -21,6 +21,8 @@ excludeNamespace: null
 registries: null
 
 cronjob:
+  dockerImage: nabsul/k8s-ecr-login-renew:v1.7.1
+
   # the schedule of the cronjob
   schedule: "0 */6 * * *"
 

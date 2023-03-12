@@ -40,7 +40,7 @@ spec:
           containers:
           - name: k8s-ecr-login-renew
             imagePullPolicy: IfNotPresent
-            image: nabsul/k8s-ecr-login-renew:v{{ required "An app version is required" .Chart.AppVersion }}
+            image: {{ required "Docker image must be specficed" .values.cronjob.dockerImage }}
             env:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
