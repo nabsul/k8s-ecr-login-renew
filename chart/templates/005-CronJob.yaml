@@ -34,13 +34,13 @@ spec:
             app.kubernetes.io/version: {{ .Chart.AppVersion }}        
 {{- end }}
         spec:
-          serviceAccountName: {{ required "Service account name is required" .Values.names.serviceAcount }}
+          serviceAccountName: {{ required "Service account name is required" .Values.names.serviceAccount }}
           terminationGracePeriodSeconds: {{ required "Termination grace period is required" .Values.cronjob.terminationGracePeriodSeconds }}
           restartPolicy: Never
           containers:
           - name: k8s-ecr-login-renew
             imagePullPolicy: IfNotPresent
-            image: nabsul/k8s-ecr-login-renew:v{{ required "An app version is required" .Chart.AppVersion }}
+            image: {{ required "Docker image must be specficed" .values.cronjob.dockerImage }}
             env:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -58,6 +58,10 @@ spec:
               value: {{ required "Secret name for Docker credentials is required" .Values.dockerSecretName }}
             - name: TARGET_NAMESPACE
               value: {{ required "Target namespace is required" .Values.targetNamespace }}
+{{- if .Values.excludeNamespace }}
+            - name: EXCLUDE_NAMESPACE
+              value: {{ required "Target namespace is required" .Values.excludeNamespace }}
+{{- end}}
 {{- if .Values.registries }}
             - name: DOCKER_REGISTRIES
               value: {{ .Values.registries }}
