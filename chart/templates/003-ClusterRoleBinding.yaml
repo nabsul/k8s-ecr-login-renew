@@ -16,5 +16,5 @@ roleRef:
   name: {{ required "A cluster role name is requred" .Values.names.clusterRole }}
 subjects:
   - kind: ServiceAccount
-    name: {{ required "A service account name is required" .Values.names.serviceAcount }}
+    name: {{ required "A service account name is required" .Values.names.serviceAccount }}
     namespace: {{ .Release.Namespace | default "default" }}

@@ -31,7 +31,7 @@ spec:
             app.kubernetes.io/name: {{ .Chart.Name }}
             helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
             app.kubernetes.io/instance: {{ .Release.Name }}
-            app.kubernetes.io/version: {{ .Chart.AppVersion }}        
+            app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end }}
         spec:
           serviceAccountName: {{ required "Service account name is required" .Values.names.serviceAccount }}
@@ -42,7 +42,7 @@ spec:
             imagePullPolicy: IfNotPresent
             image: {{ required "Docker image must be specficed" .Values.cronjob.dockerImage }}
             env:
-{{- if .Values.aws -}}
+{{- if .Values.aws }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -53,7 +53,7 @@ spec:
                 secretKeyRef:
                   name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
                   key: {{ required "AWS credentials secret key secret acceess key is required" .Values.aws.secretKeys.secretAccessKey }}
-{{- end -}}
+{{- end }}
             - name: AWS_REGION
               value: {{ required "AWS region must be specified" .Values.awsRegion }}
             - name: DOCKER_SECRET_NAME
@@ -63,7 +63,7 @@ spec:
 {{- if .Values.excludeNamespace }}
             - name: EXCLUDE_NAMESPACE
               value: {{ required "Target namespace is required" .Values.excludeNamespace }}
-{{- end}}
+{{- end }}
 {{- if .Values.registries }}
             - name: DOCKER_REGISTRIES
               value: {{ .Values.registries }}
