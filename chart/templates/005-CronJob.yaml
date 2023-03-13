@@ -42,7 +42,7 @@ spec:
             imagePullPolicy: IfNotPresent
             image: {{ required "Docker image must be specficed" .values.cronjob.dockerImage }}
             env:
-{{- if .Values.aws -}}
+{{- if .Values.aws }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -53,7 +53,7 @@ spec:
                 secretKeyRef:
                   name: {{ required "AWS credentials secret name is required" .Values.aws.secretName }}
                   key: {{ required "AWS credentials secret key secret acceess key is required" .Values.aws.secretKeys.secretAccessKey }}
-{{- end -}}
+{{- end }}
             - name: AWS_REGION
               value: {{ required "AWS region must be specified" .Values.awsRegion }}
             - name: DOCKER_SECRET_NAME
