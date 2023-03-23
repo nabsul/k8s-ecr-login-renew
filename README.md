@@ -30,9 +30,9 @@ If there is an architecture that isn't supported you can request it [here](https
 
 The Docker image for running this tool in Kubernetes is published here: https://hub.docker.com/r/nabsul/k8s-ecr-login-renew
 
-Note: Although a `latest` tag is currently being published, I highly recommend using a specific version.
+Note1: Although a `latest` tag is currently being published, I highly recommend using a specific version.
 With the `latest` you run the risk of using an outdated version of the tool, or getting upgraded to a newer version before you're ready.
-I will eventually deprecate the `latest` tag.
+I will eventually deprecate the `latest` tag. UPDATE: It happened sort of by accident, but the `latest` tag is now gone and won't be coming back.
 
 ## Environment Variables
 

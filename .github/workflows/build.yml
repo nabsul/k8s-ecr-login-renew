@@ -31,6 +31,8 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/nabsul/k8s-ecr-login-renew,nabsul/k8s-ecr-login-renew
+          flavor: |
+            latest=false
           tags: |
             type=ref,event=branch
             type=ref,event=pr
