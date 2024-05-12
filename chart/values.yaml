@@ -64,3 +64,6 @@ aws:
 
 # Pod annotations for the pods that are created by the cronjob
 podAnnotations: {}
+
+# Pod tolerations for the cron job
+tolerations: {}
