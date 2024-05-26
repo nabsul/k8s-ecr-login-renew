@@ -64,3 +64,5 @@ aws:
 
 # Pod annotations for the pods that are created by the cronjob
 podAnnotations: {}
+
+test: {}
