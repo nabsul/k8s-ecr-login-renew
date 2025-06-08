@@ -62,5 +62,3 @@ jobs:
           push: true
           tags: ${{ steps.meta_ghcr.outputs.tags }}
           labels: ${{ steps.meta_ghcr.outputs.labels }}
-          cache-from: type=inline
-          cache-to: type=inline
