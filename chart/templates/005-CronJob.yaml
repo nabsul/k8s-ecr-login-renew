@@ -59,10 +59,10 @@ spec:
             - name: DOCKER_SECRET_NAME
               value: {{ required "Secret name for Docker credentials is required" .Values.dockerSecretName }}
             - name: TARGET_NAMESPACE
-              value: {{ required "Target namespace is required" .Values.targetNamespace }}
+              value: {{ required "Target namespace is required" .Values.targetNamespace | quote }}
 {{- if .Values.excludeNamespace }}
             - name: EXCLUDE_NAMESPACE
-              value: {{ required "Target namespace is required" .Values.excludeNamespace }}
+              value: {{ required "Target namespace is required" .Values.excludeNamespace | quote }}
 {{- end }}
 {{- if .Values.registries }}
             - name: DOCKER_REGISTRIES
