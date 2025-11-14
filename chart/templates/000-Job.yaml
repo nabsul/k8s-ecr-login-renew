@@ -1,0 +1,21 @@
+{{- if .Values.postInstallHook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ required "Job name is required" .Values.names.job }}
+  namespace: {{ .Release.Namespace | default "default" }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+{{- if .Values.forHelm }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+spec:
+  template:
+    {{- include "k8s-ecr-login-renew.jobPodTemplate" . | nindent 4 }}
+{{- end }}

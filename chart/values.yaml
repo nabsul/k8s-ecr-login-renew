@@ -20,6 +20,9 @@ excludeNamespace: null
 # Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
 registries: null
 
+postInstallHook:
+  enabled: true
+
 cronjob:
   dockerImage: nabsul/k8s-ecr-login-renew:v1.7.1
 
