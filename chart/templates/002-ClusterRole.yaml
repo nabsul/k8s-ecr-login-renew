@@ -26,3 +26,4 @@ rules:
       - 'create'
       - 'patch'
       - 'get'
+      - 'update'
