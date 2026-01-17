@@ -15,13 +15,13 @@ dockerSecretName: k8s-ecr-login-renew-docker-secret
 targetNamespace: "default"
 excludeNamespace: null
 
-# By default the tool will create credentials for: https://[ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
+# By default the tool will create credentials for: [ACCOUNT_ID].dkr.ecr.[region].amazonaws.com
 # If you need credentials for multiple ECR instances (for different regions for example), you can populate this value with a comma separated list.
-# Example: registries: https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com,https://ACCOUNT_2_ID.dkr.ecr.us-east-1.amazonaws.com
+# Example: registries: [ACCOUNT_1_ID].dkr.ecr.us-east-1.amazonaws.com,[ACCOUNT_2_ID].dkr.ecr.us-east-1.amazonaws.com
 registries: null
 
 cronjob:
-  dockerImage: nabsul/k8s-ecr-login-renew:v1.7.1
+  dockerImage: nabsul/k8s-ecr-login-renew:v1.7.2
 
   # the schedule of the cronjob
   schedule: "0 */6 * * *"

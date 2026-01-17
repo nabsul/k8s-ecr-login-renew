@@ -47,7 +47,7 @@ The tool is configured using the following environment variables:
   If this environment variable is not set, a value of `default` is assumed.
 - DOCKER_REGISTRIES (optional): Comma-separated list of registry URL. 
   If none is provided, the default URL returned from AWS is used.
-  - Example: `DOCKER_REGISTRIES=https://321321.dkr.ecr.us-west-2.amazonaws.com,https://123123.dkr.ecr.us-east-2.amazonaws.com`
+  - Example: `DOCKER_REGISTRIES=321321.dkr.ecr.us-west-2.amazonaws.com,123123.dkr.ecr.us-east-2.amazonaws.com`
 
 ## Prerequisites
 
