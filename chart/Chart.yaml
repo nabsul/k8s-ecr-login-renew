@@ -1,7 +1,7 @@
 apiVersion: v2
 name: k8s-ecr-login-renew
-version: 1.0.5
-appVersion: 1.7.1
+version: 1.0.6
+appVersion: 1.7.2
 description: Deploys a cronJob which will renew ECR imagePullSecrets automatically
 maintainers:
 - name: Nabeel Sulieman
