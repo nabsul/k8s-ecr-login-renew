@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-and-push-image:
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-default
     permissions:
       contents: read
       packages: write
