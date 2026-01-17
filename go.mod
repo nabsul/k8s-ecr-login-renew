@@ -1,8 +1,6 @@
 module k8s-ecr-login-renew
 
-go 1.23.0
-
-toolchain go1.24.3
+go 1.25.6
 
 require (
 	github.com/aws/aws-sdk-go v1.44.219

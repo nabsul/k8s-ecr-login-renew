@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.24-alpine AS build
+FROM golang:1.25-alpine AS build
 WORKDIR /go/src/app
 COPY go.mod /go/src/app/
 COPY go.sum /go/src/app/
@@ -8,7 +8,7 @@ RUN go mod download
 COPY . .
 RUN go build -o /go/bin/app
 
-FROM alpine:3.22
+FROM alpine:3.23
 RUN addgroup -S -g 1001 appgroup && adduser -S -u 1001 -G appgroup appuser
 USER appuser
 
