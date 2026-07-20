@@ -35,7 +35,15 @@ cronjob:
   # The deadline afterwhich running the cronJob will be skipped. See https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#cron-job-limitations for defaults and details.
   startingDeadlineSeconds: null
 
-  # Termination grace period Seconds 
+  # Optional. How to treat concurrent job runs: Allow (default when unset), Forbid, or Replace.
+  # Replace supersedes a still-running job with a new scheduled run instead of letting runs pile up.
+  concurrencyPolicy: null
+
+  # Optional. Deadline (seconds) for a single job run. A run exceeding this is terminated instead of
+  # hanging indefinitely (e.g. when a pod is stuck on a node that cannot start it). Unset = no deadline.
+  activeDeadlineSeconds: null
+
+  # Termination grace period Seconds
   terminationGracePeriodSeconds: 0
 
 # Set this to false in order to generate raw YAML that can be used without Helm
