@@ -18,8 +18,14 @@ spec:
 {{- if .Values.cronjob.startingDeadlineSeconds }}
   startingDeadlineSeconds: {{ .Values.cronjob.startingDeadlineSeconds }}
 {{- end }}
+{{- if .Values.cronjob.concurrencyPolicy }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+{{- end }}
   jobTemplate:
     spec:
+{{- if .Values.cronjob.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
+{{- end }}
       template:
         metadata:
 {{- with .Values.podAnnotations }}
